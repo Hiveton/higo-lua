@@ -218,13 +218,19 @@ func (t *Table) Len() int {
 	return 0
 }
 
-func (t *Table) MaxN() int {
-	for i := len(t.array) - 1; i >= 0; i-- {
-		if t.array[i] != Nil {
-			return i + 1
+func (t *Table) MaxN() float64 {
+	max := 0.0
+	for i, v := range t.array {
+		if v != Nil && float64(i+1) > max {
+			max = float64(i + 1)
 		}
 	}
-	return 0
+	for key := range t.dict {
+		if n, ok := key.(Number); ok && float64(n) > max {
+			max = float64(n)
+		}
+	}
+	return max
 }
 
 func (t *Table) Metatable() *Table { return t.metatable }

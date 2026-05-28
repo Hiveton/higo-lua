@@ -1463,6 +1463,25 @@ result = before .. ":" .. table.maxn(t)
 	}
 }
 
+func TestLua51TableMaxNIncludesNonIntegerNumericKeys(t *testing.T) {
+	st := state.New()
+	defer st.Close()
+
+	if err := st.DoString(context.Background(), `
+local t = {[1] = "one"}
+t[2.5] = "half"
+t["9"] = "string-key"
+t[-8] = "negative"
+result = table.maxn(t)
+`); err != nil {
+		t.Fatalf("DoString() error = %v", err)
+	}
+	got, _ := st.GetGlobal("result")
+	if got.String() != "2.5" {
+		t.Fatalf("result = %q, want table.maxn to include non-integer numeric keys", got.String())
+	}
+}
+
 func TestLua51TableInsertPositionAndSortComparator(t *testing.T) {
 	st := state.New()
 	defer st.Close()

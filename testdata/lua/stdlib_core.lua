@@ -47,7 +47,12 @@ maxn_values[5] = "present"
 local maxn_before = table.maxn(maxn_values)
 maxn_values[5] = nil
 maxn_values[3] = "left"
-if maxn_before ~= 5 or table.maxn(maxn_values) ~= 3 then
+local maxn_non_integer = {}
+maxn_non_integer[1] = "one"
+maxn_non_integer[2.5] = "half"
+maxn_non_integer["9"] = "string"
+maxn_non_integer[-8] = "negative"
+if maxn_before ~= 5 or table.maxn(maxn_values) ~= 3 or table.maxn(maxn_non_integer) ~= 2.5 then
   error("table.maxn deleted-slot mismatch")
 end
 local numeric_values = {10, 2, 1}

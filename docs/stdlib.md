@@ -14,7 +14,8 @@ The default profile opens these modules:
 - `table`: `table.insert`, `table.remove`, `table.sort`, `table.concat`
   with Lua 5.1 sparse insert/remove boundary behavior, default concat
   separator, raw integer-key access, and explicit concat range validation,
-  `table.unpack`, `table.getn`, `table.maxn`, `table.foreach`,
+  `table.unpack`, `table.getn`, `table.maxn` over numeric keys,
+  `table.foreach`,
   `table.foreachi`
 - `string`: `string.len`, `string.upper`, `string.lower`, `string.byte`,
   `string.char`, `string.reverse`, `string.sub`, `string.rep`,
