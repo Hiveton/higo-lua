@@ -11,6 +11,27 @@ result, err = rt.DoReader(ctx, "reader.lua", strings.NewReader(`return "ok"`))
 
 `Runtime` creates an isolated state for each call.
 
+## Command Line Runner
+
+Run an external Lua file:
+
+```bash
+go run ./cmd/higoluarun ./testdata/lua/basic.lua
+```
+
+Arguments after the script path are exposed through the Lua `arg` table, with
+`arg[0]` set to the script path and `arg[1]`, `arg[2]`, ... set to user
+arguments.
+
+Run every `.lua` file in a directory:
+
+```bash
+go run ./cmd/higoluarun test ./testdata/lua
+```
+
+The test mode prints one `PASS` or `FAIL` line per script and exits non-zero if
+any script fails.
+
 ## Embedded State
 
 ```go

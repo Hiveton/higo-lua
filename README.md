@@ -13,12 +13,13 @@ Run the library checks:
 ```bash
 go test ./...
 go test -race ./...
-(cd ../runtime-examples && go run ./cmd/higoluarun test ../higolua/testdata/lua)
+go run ./cmd/higoluarun test ./testdata/lua
+go run ./cmd/higoluarun ./testdata/lua/basic.lua
 ```
 
-The CLI and runnable integration examples live in the separate
-`../runtime-examples` module. That project imports this library through the
-public `github.com/hiveton/higolua` API.
+The `cmd/higoluarun` command runs external Lua files directly from this module.
+It also has a `test <directory>` mode for executing compatibility scripts under
+`testdata/lua`.
 
 See `docs/api.md` and `docs/architecture.md`.
 
