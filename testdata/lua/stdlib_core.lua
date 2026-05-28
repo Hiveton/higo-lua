@@ -22,6 +22,12 @@ end
 if string.format("%s", "kept", "ignored") ~= "kept" then
   error("string.format extra argument mismatch")
 end
+local format_missing_ok = pcall(function()
+  return string.format("%s:%d", "only")
+end)
+if format_missing_ok then
+  error("string.format missing argument mismatch")
+end
 if select("#", string.byte("A", 2)) ~= 0 or select("#", string.byte("ABC", 3, 2)) ~= 0 then
   error("string.byte empty range mismatch")
 end

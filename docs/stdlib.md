@@ -78,7 +78,7 @@ classes, and the Lua non-greedy `-` repetition modifier is honored.
 `string.format` accepts Lua integer-style specifiers such as `%d`, `%i`, `%o`,
 `%u`, `%x`, `%X`, and `%c` by coercing Lua numbers to integers before passing
 them to the formatter, and ignores extra arguments that are not consumed by
-the format string.
+the format string. Missing format arguments raise a Lua runtime error.
 Advanced Lua pattern features such as embedded balanced items are still
 remaining compatibility items.
 

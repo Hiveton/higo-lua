@@ -1983,12 +1983,15 @@ func TestLua51StringFormatIntegerSpecifiersCoerceNumbers(t *testing.T) {
 	if err := st.DoString(context.Background(), `
 local integerFormats = string.format("%d:%i:%x:%X:%o:%c", 7.9, -3.2, 255, 255, 9, 65)
 local extraIgnored = string.format("%s", "kept", "ignored")
-result = integerFormats .. ":" .. extraIgnored
+local missingArgOK, missingArgErr = pcall(function()
+  return string.format("%s:%d", "only")
+end)
+result = integerFormats .. ":" .. extraIgnored .. ":" .. tostring(missingArgOK) .. ":" .. type(missingArgErr)
 `); err != nil {
 		t.Fatalf("DoString() error = %v", err)
 	}
 	got, _ := st.GetGlobal("result")
-	if got.String() != "7:-3:ff:FF:11:A:kept" {
+	if got.String() != "7:-3:ff:FF:11:A:kept:false:string" {
 		t.Fatalf("result = %q, want Lua integer format coercion", got.String())
 	}
 }

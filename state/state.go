@@ -2305,7 +2305,10 @@ func (s *State) openStdlib() {
 			return value.String(strings.Repeat(args.String(0), count)), nil
 		}})
 		str.Set(value.String("format"), &goFunction{fn: func(ctx context.Context, args Args) (value.Value, error) {
-			format, formatArgs := luaFormatArgs(args.String(0), []value.Value(args[1:]))
+			format, formatArgs, err := luaFormatArgs(args.String(0), []value.Value(args[1:]))
+			if err != nil {
+				return value.Nil, err
+			}
 			return value.String(fmt.Sprintf(format, formatArgs...)), nil
 		}})
 		str.Set(value.String("dump"), &goFunction{fn: func(ctx context.Context, args Args) (value.Value, error) {
@@ -3347,7 +3350,7 @@ func valueMetatable(v value.Value) *value.Table {
 	}
 }
 
-func luaFormatArgs(format string, args []value.Value) (string, []any) {
+func luaFormatArgs(format string, args []value.Value) (string, []any, error) {
 	var out strings.Builder
 	converted := make([]any, 0, len(args))
 	argIndex := 0
@@ -3376,12 +3379,15 @@ func luaFormatArgs(format string, args []value.Value) (string, []any) {
 		} else {
 			out.WriteByte(verb)
 		}
+		if argIndex >= len(args) {
+			return "", nil, fmt.Errorf("bad argument #%d to string.format (no value)", argIndex+2)
+		}
 		if argIndex < len(args) {
 			converted = append(converted, luaFormatArg(args[argIndex], verb))
 			argIndex++
 		}
 	}
-	return out.String(), converted
+	return out.String(), converted, nil
 }
 
 func isLuaFormatVerb(ch byte) bool {
