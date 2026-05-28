@@ -2642,7 +2642,12 @@ func (s *State) openStdlib() {
 	}
 	if s.stdlib.OS {
 		osTable := value.NewTable()
-		osTable.Set(value.String("time"), &goFunction{fn: func(ctx context.Context, args Args) (value.Value, error) { return value.Number(time.Now().Unix()), nil }})
+		osTable.Set(value.String("time"), &goFunction{fn: func(ctx context.Context, args Args) (value.Value, error) {
+			if t, ok := args.Get(0).(*value.Table); ok {
+				return value.Number(luaTimeFromTable(t).Unix()), nil
+			}
+			return value.Number(time.Now().Unix()), nil
+		}})
 		osTable.Set(value.String("date"), &goFunction{fn: func(ctx context.Context, args Args) (value.Value, error) {
 			format := args.String(0)
 			if args.Get(0) == value.Nil {
@@ -3410,6 +3415,23 @@ func luaDateTable(t time.Time) *value.Table {
 	tab.Set(value.String("yday"), value.Number(t.YearDay()))
 	tab.Set(value.String("isdst"), value.Bool(false))
 	return tab
+}
+
+func luaTimeFromTable(tab *value.Table) time.Time {
+	year := int(luaTableNumber(tab, "year", 1970))
+	month := time.Month(int(luaTableNumber(tab, "month", 1)))
+	day := int(luaTableNumber(tab, "day", 1))
+	hour := int(luaTableNumber(tab, "hour", 12))
+	minute := int(luaTableNumber(tab, "min", 0))
+	second := int(luaTableNumber(tab, "sec", 0))
+	return time.Date(year, month, day, hour, minute, second, 0, time.Local)
+}
+
+func luaTableNumber(tab *value.Table, key string, fallback float64) float64 {
+	if n, ok := value.ToNumber(tab.Get(value.String(key))); ok {
+		return n
+	}
+	return fallback
 }
 
 func luaDateFormat(format string, t time.Time) string {

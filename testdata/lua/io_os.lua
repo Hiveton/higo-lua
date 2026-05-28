@@ -50,3 +50,8 @@ local date_table = os.date("!*t", 0)
 if date_text ~= "1970-01-01 00:00:00" or date_table.year ~= 1970 or date_table.month ~= 1 or date_table.day ~= 1 or date_table.hour ~= 0 or date_table.min ~= 0 or date_table.sec ~= 0 or date_table.isdst ~= false then
   error("os.date explicit time mismatch")
 end
+
+local built_time = os.time({year = 1970, month = 1, day = 1, hour = 0, min = 0, sec = 0})
+if os.date("!%Y-%m-%d %H:%M:%S", built_time) ~= "1969-12-31 16:00:00" then
+  error("os.time table mismatch")
+end

@@ -2205,6 +2205,23 @@ result = formatted .. ":" .. t.year .. ":" .. t.month .. ":" .. t.day .. ":" .. 
 	}
 }
 
+func TestLua51OSTimeBuildsTimestampFromTable(t *testing.T) {
+	st := state.New()
+	defer st.Close()
+
+	if err := st.DoString(context.Background(), `
+local epoch = os.time({year = 1970, month = 1, day = 1, hour = 0, min = 0, sec = 0})
+local formatted = os.date("!%Y-%m-%d %H:%M:%S", epoch)
+result = epoch .. ":" .. formatted
+`); err != nil {
+		t.Fatalf("DoString() error = %v", err)
+	}
+	got, _ := st.GetGlobal("result")
+	if got.String() != "-28800:1969-12-31 16:00:00" {
+		t.Fatalf("result = %q, want os.time table to build epoch timestamp", got.String())
+	}
+}
+
 func TestLua51IOLibraryOpenReadWriteAndClose(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "data.txt")
 
