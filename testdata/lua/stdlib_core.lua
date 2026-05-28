@@ -201,6 +201,13 @@ end
 if string.sub(package.config, 1, 1) ~= "/" or string.sub(package.config, 3, 3) ~= ";" then
   error("package.config mismatch")
 end
+package.preload.false_cached = function()
+  return {value = "loaded"}
+end
+package.loaded.false_cached = false
+if require("false_cached").value ~= "loaded" then
+  error("require false package.loaded mismatch")
+end
 
 local secret = "up"
 local function probe()

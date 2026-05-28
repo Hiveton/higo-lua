@@ -2726,12 +2726,14 @@ package.preload.demo = function(name)
 end
 local first = require("demo")
 local second = require("demo")
-result = first.value .. ":" .. second.value .. ":" .. tostring(package.loaded.demo == first)
+package.loaded.demo = false
+local third = require("demo")
+result = first.value .. ":" .. second.value .. ":" .. tostring(package.loaded.demo == third) .. ":" .. third.value
 `); err != nil {
 		t.Fatalf("DoString() error = %v", err)
 	}
 	got, _ := st.GetGlobal("result")
-	if got.String() != "preloaded:demo:preloaded:demo:true" {
+	if got.String() != "preloaded:demo:preloaded:demo:true:preloaded:demo" {
 		t.Fatalf("result = %q, want preload module cached in package.loaded", got.String())
 	}
 }

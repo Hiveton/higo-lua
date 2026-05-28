@@ -47,7 +47,8 @@ The default profile opens these modules:
 - `package`: `require`, `package.path`, `package.loaded`,
   `package.preload`, `package.loaders`, `package.searchers`,
   `package.cpath`, `package.config`, `package.seeall`, `module`,
-  unsupported `package.loadlib`
+  unsupported `package.loadlib` (`require` only treats truthy
+  `package.loaded` entries as cached)
 - `debug`: `debug.traceback`, `debug.getinfo`, `debug.getmetatable`,
   `debug.setmetatable`, `debug.getregistry`, `debug.getfenv`,
   `debug.setfenv`, `debug.getupvalue`, `debug.setupvalue`,
