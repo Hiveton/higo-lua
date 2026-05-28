@@ -1911,6 +1911,10 @@ func (s *State) openStdlib() {
 			fn := args.Get(0)
 			values, err := s.callValueMulti(ctx, fn, []value.Value(args[1:]))
 			if err != nil {
+				var exitErr *ExitError
+				if errors.As(err, &exitErr) {
+					return nil, err
+				}
 				return []value.Value{value.Bool(false), value.String(err.Error())}, nil
 			}
 			return append([]value.Value{value.Bool(true)}, values...), nil
@@ -1920,6 +1924,10 @@ func (s *State) openStdlib() {
 			handler := args.Get(1)
 			values, err := s.callValueMulti(ctx, fn, nil)
 			if err != nil {
+				var exitErr *ExitError
+				if errors.As(err, &exitErr) {
+					return nil, err
+				}
 				handled, handlerErr := s.callValueMulti(ctx, handler, []value.Value{value.String(err.Error())})
 				if handlerErr != nil {
 					return []value.Value{value.Bool(false), value.String(handlerErr.Error())}, nil

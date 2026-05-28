@@ -26,9 +26,24 @@ set +e
 "$runner_bin" -e 'os.exit(7)' >/tmp/higoluarun-exit.out 2>&1
 exit_code=$?
 set -e
-rm -f /tmp/higoluarun-exit.out "$runner_bin"
 if [[ "$exit_code" -ne 7 ]]; then
 	echo "os.exit CLI code = $exit_code, want 7" >&2
+	rm -f /tmp/higoluarun-exit.out "$runner_bin"
+	exit 1
+fi
+set +e
+"$runner_bin" -e 'pcall(function() os.exit(7) end)' >/tmp/higoluarun-exit.out 2>&1
+pcall_exit_code=$?
+"$runner_bin" -e 'xpcall(function() os.exit(7) end, function(err) return err end)' >/tmp/higoluarun-exit.out 2>&1
+xpcall_exit_code=$?
+set -e
+rm -f /tmp/higoluarun-exit.out "$runner_bin"
+if [[ "$pcall_exit_code" -ne 7 ]]; then
+	echo "pcall os.exit CLI code = $pcall_exit_code, want 7" >&2
+	exit 1
+fi
+if [[ "$xpcall_exit_code" -ne 7 ]]; then
+	echo "xpcall os.exit CLI code = $xpcall_exit_code, want 7" >&2
 	exit 1
 fi
 go run ./cmd/higoluarun test ./testdata/lua

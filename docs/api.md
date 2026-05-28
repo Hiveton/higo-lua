@@ -105,4 +105,5 @@ original error for callers that need lower-level details.
 keeps the registered Go function name and, when available from the statement
 boundary, the Lua source position that triggered it.
 `ExitError` carries the `os.exit` status code so command-line hosts can exit
-with the Lua script's requested status.
+with the Lua script's requested status. It is not caught by `pcall` or
+`xpcall`.

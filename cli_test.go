@@ -156,6 +156,26 @@ func TestHigoLuaRunHonorsOsExitCode(t *testing.T) {
 	if exitErr.ExitCode() != 7 {
 		t.Fatalf("exit code = %d, want 7\n%s", exitErr.ExitCode(), output)
 	}
+
+	pcallCmd := exec.Command(bin, "-e", `pcall(function() os.exit(7) end)`)
+	output, err = pcallCmd.CombinedOutput()
+	exitErr, ok = err.(*exec.ExitError)
+	if !ok {
+		t.Fatalf("higoluarun pcall os.exit(7) error = %T %v, want exit error\n%s", err, err, output)
+	}
+	if exitErr.ExitCode() != 7 {
+		t.Fatalf("pcall exit code = %d, want 7\n%s", exitErr.ExitCode(), output)
+	}
+
+	xpcallCmd := exec.Command(bin, "-e", `xpcall(function() os.exit(7) end, function(err) return err end)`)
+	output, err = xpcallCmd.CombinedOutput()
+	exitErr, ok = err.(*exec.ExitError)
+	if !ok {
+		t.Fatalf("higoluarun xpcall os.exit(7) error = %T %v, want exit error\n%s", err, err, output)
+	}
+	if exitErr.ExitCode() != 7 {
+		t.Fatalf("xpcall exit code = %d, want 7\n%s", exitErr.ExitCode(), output)
+	}
 }
 
 func TestHigoLuaRunTestRunsDirectoryScripts(t *testing.T) {
