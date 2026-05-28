@@ -48,6 +48,13 @@ end
 if select_count(select(4, "a", "b")) ~= 0 then
   error("select out-of-range multi-return mismatch")
 end
+local unpack_sparse = {"head"}
+unpack_sparse[3] = "tail"
+local unpack_count = select_count(unpack(unpack_sparse, 1, 4))
+local _, unpack_gap, unpack_tail, unpack_after = unpack(unpack_sparse, 1, 4)
+if unpack_count ~= 4 or unpack_gap ~= nil or unpack_tail ~= "tail" or unpack_after ~= nil then
+  error("unpack explicit range nil-return mismatch")
+end
 local ipairs_values = {}
 ipairs_values[1] = "a"
 ipairs_values[3] = "c"

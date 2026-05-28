@@ -11,7 +11,8 @@ The default profile opens these modules:
   (`tonumber` supports bases 2 through 36; `load` supports string chunks and
   reader functions; `setmetatable`/`getmetatable` honor `__metatable`;
   `getfenv`/`setfenv` support functions and Lua stack levels; `ipairs`
-  performs raw array reads)
+  performs raw array reads; `unpack` preserves nil values inside explicit
+  ranges)
 - `table`: `table.insert`, `table.remove`, `table.sort`, `table.concat`
   with Lua 5.1 sparse insert/remove boundary behavior, default sorting through
   Lua `<` semantics including `__lt`, default concat separator, raw
