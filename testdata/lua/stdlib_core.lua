@@ -13,7 +13,7 @@ if gsub_bad_capture_ok or gsub_whole ~= "[a]%bc" then
   error("string.gsub replacement capture mismatch")
 end
 
-if string.format("%d:%i:%x:%X:%o:%c", 7.9, -3.2, 255, 255, 9, 65) ~= "7:-3:ff:FF:11:A" then
+if string.format("%d:%i:%x:%X:%o:%c:%u:%08u", 7.9, -3.2, 255, 255, 9, 65, -1, 15) ~= "7:-3:ff:FF:11:A:4294967295:00000015" then
   error("string.format integer coercion mismatch")
 end
 

@@ -1823,12 +1823,12 @@ func TestLua51StringFormatIntegerSpecifiersCoerceNumbers(t *testing.T) {
 	defer st.Close()
 
 	if err := st.DoString(context.Background(), `
-result = string.format("%d:%i:%x:%X:%o:%c", 7.9, -3.2, 255, 255, 9, 65)
+result = string.format("%d:%i:%x:%X:%o:%c:%u:%08u", 7.9, -3.2, 255, 255, 9, 65, -1, 15)
 `); err != nil {
 		t.Fatalf("DoString() error = %v", err)
 	}
 	got, _ := st.GetGlobal("result")
-	if got.String() != "7:-3:ff:FF:11:A" {
+	if got.String() != "7:-3:ff:FF:11:A:4294967295:00000015" {
 		t.Fatalf("result = %q, want Lua integer format coercion", got.String())
 	}
 }

@@ -71,7 +71,7 @@ Frontier assertions through `%f[...]` are supported for common byte-oriented
 classes. `string.gsub` supports string, table, and function replacements.
 `string.format` accepts Lua integer-style specifiers such as `%d`, `%i`, `%o`,
 `%u`, `%x`, `%X`, and `%c` by coercing Lua numbers to integers before passing
-them to the formatter.
+them to the formatter. `%u` uses 32-bit unsigned integer formatting.
 Advanced Lua pattern features such as embedded balanced items are still
 remaining compatibility items.
 

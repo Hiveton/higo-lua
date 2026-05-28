@@ -3483,7 +3483,9 @@ func isLuaFormatVerb(ch byte) bool {
 func luaFormatArg(arg value.Value, verb byte) any {
 	if n, ok := arg.(value.Number); ok {
 		switch verb {
-		case 'c', 'd', 'i', 'o', 'u', 'x', 'X':
+		case 'u':
+			return uint32(int64(n))
+		case 'c', 'd', 'i', 'o', 'x', 'X':
 			return int64(n)
 		default:
 			if float64(n) == math.Trunc(float64(n)) {
