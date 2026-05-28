@@ -3381,9 +3381,6 @@ func luaFormatArgs(format string, args []value.Value) (string, []any) {
 			argIndex++
 		}
 	}
-	for ; argIndex < len(args); argIndex++ {
-		converted = append(converted, luaFormatArg(args[argIndex], 0))
-	}
 	return out.String(), converted
 }
 
