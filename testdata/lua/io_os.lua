@@ -41,6 +41,23 @@ if all_data ~= "a\nb\n" then
   error("io read all newline mismatch")
 end
 
+local default_lines_path = os.tmpname()
+local default_lines_file = assert(io.open(default_lines_path, "w+"))
+default_lines_file:write("x\ny\n")
+default_lines_file:seek("set", 0)
+local previous_input = io.input(default_lines_file)
+local default_lines = ""
+for line in io.lines() do
+  default_lines = default_lines .. line
+end
+local default_lines_type = io.type(default_lines_file)
+io.input(previous_input)
+default_lines_file:close()
+os.remove(default_lines_path)
+if default_lines ~= "xy" or default_lines_type ~= "file" then
+  error("io.lines default input mismatch")
+end
+
 if type(os.clock()) ~= "number" then
   error("os.clock type mismatch")
 end

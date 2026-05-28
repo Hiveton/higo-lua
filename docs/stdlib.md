@@ -34,7 +34,8 @@ The default profile opens these modules:
   `io.close`, `io.open`, `io.popen`, `io.lines`, `io.tmpfile`, `io.type`,
   `io.stdin`, `io.stdout`, `io.stderr`, file handles with `read`, `write`,
   `flush`, `close`, `lines`, `seek`, and `setvbuf`
-  (`file:read` supports `*l`, `*a`, `*n`, and byte counts)
+  (`file:read` supports `*l`, `*a`, `*n`, and byte counts; `io.lines()`
+  without a path iterates the current default input without closing it)
 - `os`: `os.time` with local-time table input, `os.date` with explicit
   timestamps, UTC `!`, `*t`, weekday/month names, weekday/day-of-year, and
   12-hour/AM-PM plus common numeric format specifiers, `os.clock`,

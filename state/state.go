@@ -2771,6 +2771,9 @@ func (s *State) openStdlib() {
 			return []value.Value{handle}, nil
 		}})
 		ioTable.Set(value.String("lines"), &goFunction{fn: func(ctx context.Context, args Args) (value.Value, error) {
+			if args.Get(0) == value.Nil {
+				return s.fileMethod(s.input, "lines").(*goFunction).fn(ctx, Args{s.input})
+			}
 			path := args.String(0)
 			file, err := os.OpenFile(path, os.O_RDONLY, 0)
 			if err != nil {
