@@ -103,6 +103,17 @@ table.insert(insert_values, "c")
 if not insert_far_ok or insert_values[3] ~= nil or insert_values[4] ~= nil or insert_values[5] ~= "far" or insert_values[6] ~= "c" then
   error("table.insert position compatibility mismatch")
 end
+local foreachi_values = {}
+foreachi_values[1] = "a"
+foreachi_values[3] = "c"
+setmetatable(foreachi_values, {__index = {[2] = "meta"}})
+local foreachi_seen = ""
+table.foreachi(foreachi_values, function(i, v)
+  foreachi_seen = foreachi_seen .. i .. ":" .. tostring(v) .. ";"
+end)
+if foreachi_seen ~= "1:a;2:nil;3:c;" then
+  error("table.foreachi raw access mismatch")
+end
 
 local n = math.max(1, 9, 3) + math.min(8, 4)
 if n ~= 13 then

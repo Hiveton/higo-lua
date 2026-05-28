@@ -1443,6 +1443,29 @@ result = table.getn(t) .. ":" .. table.maxn(t) .. ":" .. seq .. ":" .. keySeq
 	}
 }
 
+func TestLua51TableForeachIRawReadsArrayValues(t *testing.T) {
+	st := state.New()
+	defer st.Close()
+
+	if err := st.DoString(context.Background(), `
+local t = {}
+t[1] = "a"
+t[3] = "c"
+setmetatable(t, {__index = {[2] = "meta"}})
+local seen = ""
+table.foreachi(t, function(i, v)
+  seen = seen .. i .. ":" .. tostring(v) .. ";"
+end)
+result = seen
+`); err != nil {
+		t.Fatalf("DoString() error = %v", err)
+	}
+	got, _ := st.GetGlobal("result")
+	if got.String() != "1:a;2:nil;3:c;" {
+		t.Fatalf("result = %q, want table.foreachi to raw-read array values", got.String())
+	}
+}
+
 func TestLua51TableMaxNSkipsDeletedNumericSlots(t *testing.T) {
 	st := state.New()
 	defer st.Close()

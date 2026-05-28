@@ -2606,7 +2606,7 @@ func (s *State) openStdlib() {
 			}
 			fn := args.Get(1)
 			for i := 1; i <= t.Len(); i++ {
-				result, err := s.callValue(ctx, fn, []value.Value{value.Number(i), t.Get(value.Number(i))})
+				result, err := s.callValue(ctx, fn, []value.Value{value.Number(i), t.RawGet(value.Number(i))})
 				if err != nil {
 					return value.Nil, err
 				}
