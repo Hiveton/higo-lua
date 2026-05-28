@@ -17,6 +17,10 @@ if string.format("%d:%i:%x:%X:%o:%c:%u:%08u", 7.9, -3.2, 255, 255, 9, 65, -1, 15
   error("string.format integer coercion mismatch")
 end
 
+if select("#", string.byte("ABC", 3, 2)) ~= 0 then
+  error("string.byte empty range count mismatch")
+end
+
 local assert_a, assert_b, assert_c = assert("ok", "left", "right")
 if assert_a ~= "ok" or assert_b ~= "left" or assert_c ~= "right" then
   error("assert multi-return mismatch")

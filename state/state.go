@@ -2358,7 +2358,10 @@ func (s *State) openStdlib() {
 			if end > len(text) {
 				end = len(text)
 			}
-			if start > end || start > len(text) {
+			if start > end {
+				return nil, nil
+			}
+			if start > len(text) {
 				return []value.Value{value.Nil}, nil
 			}
 			out := make([]value.Value, 0, end-start+1)

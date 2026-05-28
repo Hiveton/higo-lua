@@ -1617,12 +1617,13 @@ func TestAdditionalLua51StringFunctions(t *testing.T) {
 local a, b, c = string.byte("ABC", 1, 3)
 local made = string.char(72, 105)
 local reversed = string.reverse("abc")
-result = a .. ":" .. b .. ":" .. c .. ":" .. made .. ":" .. reversed
+local emptyCount = select("#", string.byte("ABC", 3, 2))
+result = a .. ":" .. b .. ":" .. c .. ":" .. made .. ":" .. reversed .. ":" .. emptyCount
 `); err != nil {
 		t.Fatalf("DoString() error = %v", err)
 	}
 	got, _ := st.GetGlobal("result")
-	if got.String() != "65:66:67:Hi:cba" {
+	if got.String() != "65:66:67:Hi:cba:0" {
 		t.Fatalf("result = %q, want byte/char/reverse behavior", got.String())
 	}
 }
