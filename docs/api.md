@@ -23,6 +23,11 @@ Arguments after the script path are exposed through the Lua `arg` table, with
 `arg[0]` set to the script path and `arg[1]`, `arg[2]`, ... set to user
 arguments.
 
+The runner automatically prepends the script directory to `package.path`, so a
+script can `require("helper")` from `helper.lua` beside the entry file without
+manual path setup. If a script returns multiple values, they are printed as a
+tab-separated line.
+
 Run every `.lua` file in a directory:
 
 ```bash

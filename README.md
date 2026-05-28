@@ -19,7 +19,8 @@ go run ./cmd/higoluarun ./testdata/lua/basic.lua
 
 The `cmd/higoluarun` command runs external Lua files directly from this module.
 It also has a `test <directory>` mode for executing compatibility scripts under
-`testdata/lua`.
+`testdata/lua`. The runner adds the script directory to `package.path`, so
+single-file tools can require helper modules placed beside the entry script.
 
 See `docs/api.md` and `docs/architecture.md`.
 

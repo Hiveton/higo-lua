@@ -42,6 +42,52 @@ return greeter.message("external")
 	}
 }
 
+func TestHigoLuaRunAutomaticallyRequiresModulesBesideScript(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "helper.lua"), []byte(`
+return {
+  value = function()
+    return "beside-script"
+  end
+}
+`), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	scriptPath := filepath.Join(dir, "main.lua")
+	if err := os.WriteFile(scriptPath, []byte(`
+local helper = require("helper")
+return helper.value()
+`), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	cmd := exec.Command("go", "run", "./cmd/higoluarun", scriptPath)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("higoluarun failed: %v\n%s", err, output)
+	}
+	if got := strings.TrimSpace(string(output)); got != "beside-script" {
+		t.Fatalf("output = %q, want beside-script", got)
+	}
+}
+
+func TestHigoLuaRunPrintsMultipleReturnValues(t *testing.T) {
+	dir := t.TempDir()
+	scriptPath := filepath.Join(dir, "multi.lua")
+	if err := os.WriteFile(scriptPath, []byte(`return "left", 42, true`), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	cmd := exec.Command("go", "run", "./cmd/higoluarun", scriptPath)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("higoluarun failed: %v\n%s", err, output)
+	}
+	if got := strings.TrimSpace(string(output)); got != "left\t42\ttrue" {
+		t.Fatalf("output = %q, want tab-separated multiple returns", got)
+	}
+}
+
 func TestHigoLuaRunTestRunsDirectoryScripts(t *testing.T) {
 	dir := t.TempDir()
 	if err := os.WriteFile(filepath.Join(dir, "pass.lua"), []byte(`

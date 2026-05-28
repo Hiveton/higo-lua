@@ -40,14 +40,47 @@ func runScript(ctx context.Context, scriptPath string, scriptArgs []string, prin
 	st := state.New()
 	defer st.Close()
 	st.SetGlobal("arg", argTable(scriptPath, scriptArgs))
-	result, err := st.DoFile(ctx, scriptPath)
+	if err := prependScriptPackagePath(ctx, st, scriptPath); err != nil {
+		return err
+	}
+	source, err := os.ReadFile(scriptPath)
 	if err != nil {
 		return err
 	}
-	if printResult && result != value.Nil {
-		fmt.Println(result.String())
+	results, err := st.DoChunkValues(ctx, scriptPath, string(source))
+	if err != nil {
+		return err
+	}
+	if printResult {
+		printResults(results)
 	}
 	return nil
+}
+
+func prependScriptPackagePath(ctx context.Context, st *state.State, scriptPath string) error {
+	dir := filepath.Dir(scriptPath)
+	patterns := []string{
+		filepath.ToSlash(filepath.Join(dir, "?.lua")),
+		filepath.ToSlash(filepath.Join(dir, "?", "init.lua")),
+	}
+	source := fmt.Sprintf("package.path = %q .. ';' .. package.path", strings.Join(patterns, ";"))
+	return st.DoString(ctx, source)
+}
+
+func printResults(results []value.Value) {
+	if len(results) == 0 {
+		return
+	}
+	rendered := make([]string, 0, len(results))
+	for _, result := range results {
+		if result == nil || result == value.Nil {
+			continue
+		}
+		rendered = append(rendered, result.String())
+	}
+	if len(rendered) > 0 {
+		fmt.Println(strings.Join(rendered, "\t"))
+	}
 }
 
 func runTestDir(ctx context.Context, dir string) error {
