@@ -37,13 +37,32 @@ pcall_exit_code=$?
 "$runner_bin" -e 'xpcall(function() os.exit(7) end, function(err) return err end)' >/tmp/higoluarun-exit.out 2>&1
 xpcall_exit_code=$?
 set -e
-rm -f /tmp/higoluarun-exit.out "$runner_bin"
+rm -f /tmp/higoluarun-exit.out
 if [[ "$pcall_exit_code" -ne 7 ]]; then
 	echo "pcall os.exit CLI code = $pcall_exit_code, want 7" >&2
 	exit 1
 fi
 if [[ "$xpcall_exit_code" -ne 7 ]]; then
 	echo "xpcall os.exit CLI code = $xpcall_exit_code, want 7" >&2
+	exit 1
+fi
+exit_test_dir="$(mktemp -d)"
+printf 'os.exit(0)\n' >"$exit_test_dir/exit_zero.lua"
+exit_test_output="$("$runner_bin" test "$exit_test_dir")"
+if [[ "$exit_test_output" != *"PASS exit_zero.lua"* ]]; then
+	echo "higoluarun test os.exit(0) output = $exit_test_output" >&2
+	rm -rf "$exit_test_dir"
+	exit 1
+fi
+printf 'os.exit(5)\n' >"$exit_test_dir/exit_nonzero.lua"
+set +e
+exit_test_output="$("$runner_bin" test "$exit_test_dir" 2>&1)"
+exit_test_code=$?
+set -e
+rm -rf "$exit_test_dir"
+rm -f "$runner_bin"
+if [[ "$exit_test_code" -eq 0 || "$exit_test_output" != *"FAIL exit_nonzero.lua"* || "$exit_test_output" != *"os.exit(5)"* ]]; then
+	echo "higoluarun test nonzero os.exit code = $exit_test_code output = $exit_test_output" >&2
 	exit 1
 fi
 go run ./cmd/higoluarun test ./testdata/lua

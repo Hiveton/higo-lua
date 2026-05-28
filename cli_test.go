@@ -198,6 +198,35 @@ end
 	}
 }
 
+func TestHigoLuaRunTestHonorsOsExitCodes(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "exit_zero.lua"), []byte(`os.exit(0)`), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	cmd := exec.Command("go", "run", "./cmd/higoluarun", "test", dir)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("higoluarun test failed for os.exit(0): %v\n%s", err, output)
+	}
+	if got := string(output); !strings.Contains(got, "PASS exit_zero.lua") {
+		t.Fatalf("output = %q, want PASS for os.exit(0)", got)
+	}
+
+	if err := os.WriteFile(filepath.Join(dir, "exit_nonzero.lua"), []byte(`os.exit(5)`), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	cmd = exec.Command("go", "run", "./cmd/higoluarun", "test", dir)
+	output, err = cmd.CombinedOutput()
+	if err == nil {
+		t.Fatalf("higoluarun test succeeded, want os.exit(5) failure\n%s", output)
+	}
+	got := string(output)
+	if !strings.Contains(got, "PASS exit_zero.lua") || !strings.Contains(got, "FAIL exit_nonzero.lua") || !strings.Contains(got, "os.exit(5)") {
+		t.Fatalf("output = %q, want os.exit test pass/fail lines", got)
+	}
+}
+
 func TestHigoLuaRunTestReportsFailingScripts(t *testing.T) {
 	dir := t.TempDir()
 	if err := os.WriteFile(filepath.Join(dir, "bad.lua"), []byte(`error("boom")`), 0o600); err != nil {

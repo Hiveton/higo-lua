@@ -143,6 +143,11 @@ func runTestDir(ctx context.Context, dir string) error {
 	var failed bool
 	for _, script := range scripts {
 		if err := runScript(ctx, script, nil, false); err != nil {
+			var exitErr *state.ExitError
+			if errors.As(err, &exitErr) && exitErr.Code == 0 {
+				fmt.Printf("PASS %s\n", filepath.Base(script))
+				continue
+			}
 			failed = true
 			fmt.Printf("FAIL %s: %v\n", filepath.Base(script), err)
 			continue
