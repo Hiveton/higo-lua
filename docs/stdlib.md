@@ -16,7 +16,8 @@ The default profile opens these modules:
   separator, raw integer-key access, and explicit concat range validation,
   `table.unpack`, `table.getn`, `table.maxn` over numeric keys,
   `table.foreach`, `table.foreachi` with raw array reads
-- `string`: `string.len`, `string.upper`, `string.lower`, `string.byte`,
+- `string`: `string.len`, `string.upper`, `string.lower`, `string.byte`
+  with zero results for empty ranges,
   `string.char`, `string.reverse`, `string.sub`, `string.rep`,
   `string.find`, `string.match`, `string.gmatch`, `string.gsub`,
   `string.format`, `string.dump`

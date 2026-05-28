@@ -1698,6 +1698,24 @@ result = a .. ":" .. b .. ":" .. c .. ":" .. made .. ":" .. reversed
 	}
 }
 
+func TestLua51StringByteEmptyRangeReturnsNoValues(t *testing.T) {
+	st := state.New()
+	defer st.Close()
+
+	if err := st.DoString(context.Background(), `
+local countPastEnd = select("#", string.byte("A", 2))
+local countEmptyRange = select("#", string.byte("ABC", 3, 2))
+local first = string.byte("A", 2)
+result = countPastEnd .. ":" .. countEmptyRange .. ":" .. tostring(first)
+`); err != nil {
+		t.Fatalf("DoString() error = %v", err)
+	}
+	got, _ := st.GetGlobal("result")
+	if got.String() != "0:0:nil" {
+		t.Fatalf("result = %q, want string.byte empty ranges to return no values", got.String())
+	}
+}
+
 func TestLua51StringPatternMatchFindAndGsub(t *testing.T) {
 	st := state.New()
 	defer st.Close()

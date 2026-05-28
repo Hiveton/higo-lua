@@ -16,6 +16,9 @@ end
 if string.format("%d:%i:%x:%X:%o:%c", 7.9, -3.2, 255, 255, 9, 65) ~= "7:-3:ff:FF:11:A" then
   error("string.format integer coercion mismatch")
 end
+if select("#", string.byte("A", 2)) ~= 0 or select("#", string.byte("ABC", 3, 2)) ~= 0 then
+  error("string.byte empty range mismatch")
+end
 
 local assert_a, assert_b, assert_c = assert("ok", "left", "right")
 if assert_a ~= "ok" or assert_b ~= "left" or assert_c ~= "right" then

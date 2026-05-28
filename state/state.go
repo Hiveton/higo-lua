@@ -2218,7 +2218,7 @@ func (s *State) openStdlib() {
 				end = len(text)
 			}
 			if start > end || start > len(text) {
-				return []value.Value{value.Nil}, nil
+				return []value.Value{}, nil
 			}
 			out := make([]value.Value, 0, end-start+1)
 			for i := start - 1; i < end; i++ {
