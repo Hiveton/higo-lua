@@ -2145,6 +2145,28 @@ result = n .. ":" .. exp .. ":" .. hex .. ":" .. rest
 	}
 }
 
+func TestLua51IOReadAliasesAndMultipleFormats(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "formats.txt")
+	if err := os.WriteFile(path, []byte("12 rest\nnext\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	st := state.New()
+	defer st.Close()
+	if err := st.DoString(context.Background(), fmt.Sprintf(`
+local reader = assert(io.open(%q, "r"))
+local n, line, all = reader:read("*number", "*line", "*all")
+reader:close()
+result = n .. ":" .. line .. ":" .. string.gsub(all, "\n", "\\n")
+`, path)); err != nil {
+		t.Fatalf("DoString() error = %v", err)
+	}
+	got, _ := st.GetGlobal("result")
+	if got.String() != "12: rest:next\\n" {
+		t.Fatalf("result = %q, want file:read aliases and multiple return values", got.String())
+	}
+}
+
 func TestLua51IOReadNumberFormatFailureDoesNotConsumeText(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "not-number.txt")
 	if err := os.WriteFile(path, []byte("abc"), 0o600); err != nil {

@@ -29,6 +29,18 @@ if number_value ~= -12.5 or number_exp ~= 125 or number_hex ~= 16 or number_rest
   error("io read number mismatch")
 end
 
+local multi_path = os.tmpname()
+local multi_file = assert(io.open(multi_path, "w+"))
+multi_file:write("12 rest\nnext\n")
+multi_file:seek("set", 0)
+local multi_number, multi_line, multi_all = multi_file:read("*number", "*line", "*all")
+multi_file:close()
+os.remove(multi_path)
+
+if multi_number ~= 12 or multi_line ~= " rest" or multi_all ~= "next\n" then
+  error("io read aliases/multiple formats mismatch")
+end
+
 local all_path = os.tmpname()
 local all_file = assert(io.open(all_path, "w+"))
 all_file:write("a\nb\n")

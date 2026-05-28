@@ -1520,6 +1520,65 @@ func isLuaSpace(b byte) bool {
 	return b == ' ' || b == '\t' || b == '\n' || b == '\r' || b == '\f' || b == '\v'
 }
 
+func readFileFormat(handle *fileHandle, format value.Value) (value.Value, error) {
+	formatText := format.String()
+	if formatText == "nil" {
+		formatText = "*l"
+	}
+	switch formatText {
+	case "*a", "*all":
+		if handle.reader == nil {
+			handle.reader = bufio.NewReader(handle.file)
+		}
+		data, err := io.ReadAll(handle.reader)
+		if err != nil {
+			return value.Nil, err
+		}
+		if len(data) == 0 {
+			return value.Nil, nil
+		}
+		return value.String(string(data)), nil
+	case "*l", "*line":
+		if handle.reader == nil {
+			handle.reader = bufio.NewReader(handle.file)
+		}
+		line, err := handle.reader.ReadString('\n')
+		if err != nil && !errors.Is(err, io.EOF) {
+			return value.Nil, err
+		}
+		if len(line) == 0 && errors.Is(err, io.EOF) {
+			return value.Nil, nil
+		}
+		return value.String(strings.TrimRight(line, "\r\n")), nil
+	case "*n", "*number":
+		if handle.reader == nil {
+			handle.reader = bufio.NewReader(handle.file)
+		}
+		n, ok, err := readLuaNumber(handle.reader)
+		if err != nil {
+			return value.Nil, err
+		}
+		if !ok {
+			return value.Nil, nil
+		}
+		return value.Number(n), nil
+	default:
+		n, ok := value.ToNumber(format)
+		if !ok {
+			return value.Nil, fmt.Errorf("unsupported file:read format %s", formatText)
+		}
+		buf := make([]byte, int(n))
+		read, err := handle.file.Read(buf)
+		if err != nil && !errors.Is(err, io.EOF) {
+			return value.Nil, err
+		}
+		if read == 0 && errors.Is(err, io.EOF) {
+			return value.Nil, nil
+		}
+		return value.String(string(buf[:read])), nil
+	}
+}
+
 func (s *State) fileMethod(handle *fileHandle, name string) value.Value {
 	switch name {
 	case "read":
@@ -1527,62 +1586,22 @@ func (s *State) fileMethod(handle *fileHandle, name string) value.Value {
 			if handle.file == nil {
 				return nil, fmt.Errorf("attempt to use a closed file")
 			}
-			format := args.String(1)
-			if format == "nil" {
-				format = "*l"
-			}
-			switch format {
-			case "*a":
-				if handle.reader == nil {
-					handle.reader = bufio.NewReader(handle.file)
-				}
-				data, err := io.ReadAll(handle.reader)
+			if len(args) <= 1 {
+				v, err := readFileFormat(handle, value.String("*l"))
 				if err != nil {
 					return nil, err
 				}
-				if len(data) == 0 {
-					return []value.Value{value.Nil}, nil
-				}
-				return []value.Value{value.String(string(data))}, nil
-			case "*l":
-				if handle.reader == nil {
-					handle.reader = bufio.NewReader(handle.file)
-				}
-				line, err := handle.reader.ReadString('\n')
-				if err != nil && !errors.Is(err, io.EOF) {
-					return nil, err
-				}
-				if len(line) == 0 && errors.Is(err, io.EOF) {
-					return []value.Value{value.Nil}, nil
-				}
-				return []value.Value{value.String(strings.TrimRight(line, "\r\n"))}, nil
-			case "*n":
-				if handle.reader == nil {
-					handle.reader = bufio.NewReader(handle.file)
-				}
-				n, ok, err := readLuaNumber(handle.reader)
+				return []value.Value{v}, nil
+			}
+			results := make([]value.Value, 0, len(args)-1)
+			for _, format := range args[1:] {
+				v, err := readFileFormat(handle, format)
 				if err != nil {
 					return nil, err
 				}
-				if !ok {
-					return []value.Value{value.Nil}, nil
-				}
-				return []value.Value{value.Number(n)}, nil
-			default:
-				n, ok := value.ToNumber(args.Get(1))
-				if !ok {
-					return nil, fmt.Errorf("unsupported file:read format %s", format)
-				}
-				buf := make([]byte, int(n))
-				read, err := handle.file.Read(buf)
-				if err != nil && !errors.Is(err, io.EOF) {
-					return nil, err
-				}
-				if read == 0 && errors.Is(err, io.EOF) {
-					return []value.Value{value.Nil}, nil
-				}
-				return []value.Value{value.String(string(buf[:read]))}, nil
+				results = append(results, v)
 			}
+			return results, nil
 		}}
 	case "write":
 		return &goFunction{fn: func(ctx context.Context, args Args) (value.Value, error) {
