@@ -2560,14 +2560,20 @@ func (s *State) openStdlib() {
 			if !ok {
 				return value.Nil, fmt.Errorf("table.concat expects table")
 			}
-			sep := args.String(1)
-			start := int(args.Number(2))
-			if start <= 0 {
-				start = 1
+			sep := ""
+			if args.Get(1) != value.Nil {
+				sep = args.String(1)
 			}
-			end := int(args.Number(3))
-			if end <= 0 || end > t.Len() {
-				end = t.Len()
+			start := 1
+			if args.Get(2) != value.Nil {
+				start = int(args.Number(2))
+			}
+			end := t.Len()
+			if args.Get(3) != value.Nil {
+				end = int(args.Number(3))
+			}
+			if start > end {
+				return value.String(""), nil
 			}
 			for i := start; i <= end; i++ {
 				v := t.Get(value.Number(i))

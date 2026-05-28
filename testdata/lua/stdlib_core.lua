@@ -55,13 +55,19 @@ table.sort(numeric_values)
 if table.concat(numeric_values, ",") ~= "1,2,10" then
   error("table.sort numeric order mismatch")
 end
+if table.concat({"a", "b"}) ~= "ab" then
+  error("table.concat default separator mismatch")
+end
 local concat_bool_ok = pcall(function()
   return table.concat({"a", true}, "")
 end)
 local concat_table_ok = pcall(function()
   return table.concat({"a", {}}, "")
 end)
-if concat_bool_ok or concat_table_ok then
+local concat_nil_ok = pcall(function()
+  return table.concat({"a"}, "", 1, 3)
+end)
+if concat_bool_ok or concat_table_ok or concat_nil_ok then
   error("table.concat element compatibility mismatch")
 end
 local remove_values = {"a", "b"}
