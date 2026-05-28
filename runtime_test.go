@@ -2076,6 +2076,26 @@ result = type(before) .. ":" .. diff .. ":" .. clockType .. ":" .. type(tmp) .. 
 	}
 }
 
+func TestLua51OSDateAndTimeFormats(t *testing.T) {
+	st := state.New()
+	defer st.Close()
+
+	if err := st.DoString(context.Background(), `
+local stamp = 946684800
+local utc = os.date("!%Y-%m-%d %H:%M:%S", 0)
+local parts = os.date("!*t", 0)
+local local_parts = os.date("*t", stamp)
+local roundtrip = os.time(local_parts)
+result = utc .. ":" .. parts.year .. ":" .. parts.month .. ":" .. parts.day .. ":" .. parts.hour .. ":" .. parts.min .. ":" .. parts.sec .. ":" .. parts.wday .. ":" .. parts.yday .. ":" .. tostring(parts.isdst) .. ":" .. roundtrip
+`); err != nil {
+		t.Fatalf("DoString() error = %v", err)
+	}
+	got, _ := st.GetGlobal("result")
+	if got.String() != "1970-01-01 00:00:00:1970:1:1:0:0:0:5:1:false:946684800" {
+		t.Fatalf("result = %q, want os.date/os.time Lua 5.1 behavior", got.String())
+	}
+}
+
 func TestLua51IOLibraryOpenReadWriteAndClose(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "data.txt")
 

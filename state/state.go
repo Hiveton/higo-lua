@@ -1713,6 +1713,112 @@ func closeFileHandle(handle *fileHandle) error {
 	return nil
 }
 
+func luaDateTable(t time.Time) *value.Table {
+	table := value.NewTable()
+	table.Set(value.String("year"), value.Number(t.Year()))
+	table.Set(value.String("month"), value.Number(int(t.Month())))
+	table.Set(value.String("day"), value.Number(t.Day()))
+	table.Set(value.String("hour"), value.Number(t.Hour()))
+	table.Set(value.String("min"), value.Number(t.Minute()))
+	table.Set(value.String("sec"), value.Number(t.Second()))
+	table.Set(value.String("wday"), value.Number(int(t.Weekday())+1))
+	table.Set(value.String("yday"), value.Number(t.YearDay()))
+	table.Set(value.String("isdst"), value.Bool(isDST(t)))
+	return table
+}
+
+func luaDateTableInt(table *value.Table, name string, fallback int) int {
+	n, ok := value.ToNumber(table.Get(value.String(name)))
+	if !ok {
+		return fallback
+	}
+	return int(n)
+}
+
+func isDST(t time.Time) bool {
+	_, offset := t.Zone()
+	jan := time.Date(t.Year(), time.January, 1, 0, 0, 0, 0, t.Location())
+	_, janOffset := jan.Zone()
+	jul := time.Date(t.Year(), time.July, 1, 0, 0, 0, 0, t.Location())
+	_, julOffset := jul.Zone()
+	standard := janOffset
+	if julOffset < standard {
+		standard = julOffset
+	}
+	return offset != standard
+}
+
+func formatLuaDate(format string, t time.Time) string {
+	var out strings.Builder
+	for i := 0; i < len(format); i++ {
+		if format[i] != '%' || i == len(format)-1 {
+			out.WriteByte(format[i])
+			continue
+		}
+		i++
+		switch format[i] {
+		case '%':
+			out.WriteByte('%')
+		case 'a':
+			out.WriteString(t.Format("Mon"))
+		case 'A':
+			out.WriteString(t.Format("Monday"))
+		case 'b', 'h':
+			out.WriteString(t.Format("Jan"))
+		case 'B':
+			out.WriteString(t.Format("January"))
+		case 'c':
+			out.WriteString(t.Format("Mon Jan _2 15:04:05 2006"))
+		case 'd':
+			out.WriteString(t.Format("02"))
+		case 'H':
+			out.WriteString(t.Format("15"))
+		case 'I':
+			out.WriteString(t.Format("03"))
+		case 'j':
+			fmt.Fprintf(&out, "%03d", t.YearDay())
+		case 'm':
+			out.WriteString(t.Format("01"))
+		case 'M':
+			out.WriteString(t.Format("04"))
+		case 'p':
+			out.WriteString(t.Format("PM"))
+		case 'S':
+			out.WriteString(t.Format("05"))
+		case 'U':
+			fmt.Fprintf(&out, "%02d", luaWeekNumber(t, time.Sunday))
+		case 'w':
+			fmt.Fprintf(&out, "%d", int(t.Weekday()))
+		case 'W':
+			fmt.Fprintf(&out, "%02d", luaWeekNumber(t, time.Monday))
+		case 'x':
+			out.WriteString(t.Format("01/02/06"))
+		case 'X':
+			out.WriteString(t.Format("15:04:05"))
+		case 'y':
+			out.WriteString(t.Format("06"))
+		case 'Y':
+			out.WriteString(t.Format("2006"))
+		case 'Z':
+			out.WriteString(t.Format("MST"))
+		default:
+			out.WriteByte('%')
+			out.WriteByte(format[i])
+		}
+	}
+	return out.String()
+}
+
+func luaWeekNumber(t time.Time, first time.Weekday) int {
+	yearStart := time.Date(t.Year(), time.January, 1, 0, 0, 0, 0, t.Location())
+	offset := (int(first) - int(yearStart.Weekday()) + 7) % 7
+	firstWeekStart := yearStart.AddDate(0, 0, offset)
+	if t.Before(firstWeekStart) {
+		return 0
+	}
+	return int(t.Sub(firstWeekStart).Hours()/24)/7 + 1
+}
+
 func (s *State) openStdlib() {
 	defer s.installGlobalTable()
 
@@ -2627,9 +2733,43 @@ func (s *State) openStdlib() {
 	}
 	if s.stdlib.OS {
 		osTable := value.NewTable()
-		osTable.Set(value.String("time"), &goFunction{fn: func(ctx context.Context, args Args) (value.Value, error) { return value.Number(time.Now().Unix()), nil }})
+		osTable.Set(value.String("time"), &goFunction{fn: func(ctx context.Context, args Args) (value.Value, error) {
+			if args.Get(0) == value.Nil {
+				return value.Number(time.Now().Unix()), nil
+			}
+			table, ok := args.Get(0).(*value.Table)
+			if !ok {
+				return value.Nil, fmt.Errorf("os.time expects table")
+			}
+			year := luaDateTableInt(table, "year", 0)
+			month := luaDateTableInt(table, "month", 0)
+			day := luaDateTableInt(table, "day", 0)
+			if year == 0 || month == 0 || day == 0 {
+				return value.Nil, fmt.Errorf("os.time table requires year, month, and day")
+			}
+			hour := luaDateTableInt(table, "hour", 12)
+			minute := luaDateTableInt(table, "min", 0)
+			second := luaDateTableInt(table, "sec", 0)
+			t := time.Date(year, time.Month(month), day, hour, minute, second, 0, time.Local)
+			return value.Number(t.Unix()), nil
+		}})
 		osTable.Set(value.String("date"), &goFunction{fn: func(ctx context.Context, args Args) (value.Value, error) {
-			return value.String(time.Now().Format(time.RFC3339)), nil
+			format := args.String(0)
+			if format == "nil" {
+				format = "%c"
+			}
+			t := time.Now()
+			if args.Get(1) != value.Nil {
+				t = time.Unix(int64(args.Number(1)), 0)
+			}
+			if strings.HasPrefix(format, "!") {
+				t = t.UTC()
+				format = strings.TrimPrefix(format, "!")
+			}
+			if format == "*t" {
+				return luaDateTable(t), nil
+			}
+			return value.String(formatLuaDate(format, t)), nil
 		}})
 		osTable.Set(value.String("clock"), &goFunction{fn: func(ctx context.Context, args Args) (value.Value, error) {
 			return value.Number(float64(time.Now().UnixNano()) / float64(time.Second)), nil

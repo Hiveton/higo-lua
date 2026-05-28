@@ -33,6 +33,8 @@ The default profile opens these modules:
 - `os`: `os.time`, `os.date`, `os.clock`, `os.difftime`, `os.getenv`,
   `os.tmpname`, `os.rename`, `os.remove`, `os.execute`, `os.setlocale`,
   `os.exit`
+  (`os.date` supports formatted dates, `*t` tables, and the `!` UTC prefix;
+  `os.time` accepts Lua date tables)
 - `package`: `require`, `package.path`, `package.loaded`,
   `package.preload`, `package.loaders`, `package.searchers`,
   `package.cpath`, `package.config`, `package.seeall`, `module`,

@@ -44,3 +44,15 @@ end
 if type(os.clock()) ~= "number" then
   error("os.clock type mismatch")
 end
+
+local utc = os.date("!%Y-%m-%d %H:%M:%S", 0)
+local parts = os.date("!*t", 0)
+if utc ~= "1970-01-01 00:00:00" or parts.year ~= 1970 or parts.month ~= 1 or parts.day ~= 1 or parts.wday ~= 5 or parts.yday ~= 1 then
+  error("os.date fixed timestamp mismatch")
+end
+
+local stamp = 946684800
+local roundtrip = os.time(os.date("*t", stamp))
+if roundtrip ~= stamp then
+  error("os.time table roundtrip mismatch")
+end
