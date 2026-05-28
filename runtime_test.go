@@ -2576,6 +2576,33 @@ result = mod.value .. ":" .. tostring(package.loaded.custom == mod) .. ":" .. ty
 	}
 }
 
+func TestRequireUsesPackageSearchersChain(t *testing.T) {
+	st := state.New()
+	defer st.Close()
+
+	if err := st.DoString(context.Background(), `
+local original = package.searchers
+package.searchers = {
+  function(name)
+    if name == "searcher_mod" then
+      return function(moduleName)
+        return {value = "searcher:" .. moduleName}
+      end
+    end
+    return "\n\tsearcher missed"
+  end
+}
+local mod = require("searcher_mod")
+result = mod.value .. ":" .. tostring(package.loaded.searcher_mod == mod) .. ":" .. type(original[1])
+`); err != nil {
+		t.Fatalf("DoString() error = %v", err)
+	}
+	got, _ := st.GetGlobal("result")
+	if got.String() != "searcher:searcher_mod:true:function" {
+		t.Fatalf("result = %q, want require to use package.searchers chain", got.String())
+	}
+}
+
 func TestLua51ModuleCreatesPackageLoadedTableAndEnvironment(t *testing.T) {
 	st := state.New()
 	defer st.Close()

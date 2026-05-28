@@ -2946,6 +2946,9 @@ func (s *State) openStdlib() {
 				return cached, nil
 			}
 			activeLoaders, ok := pkg.Get(value.String("loaders")).(*value.Table)
+			if searchers, searchersOK := pkg.Get(value.String("searchers")).(*value.Table); searchersOK && activeLoaders == loaders {
+				activeLoaders = searchers
+			}
 			if !ok {
 				return value.Nil, fmt.Errorf("package.loaders must be table")
 			}

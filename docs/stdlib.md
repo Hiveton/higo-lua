@@ -37,6 +37,8 @@ The default profile opens these modules:
   `package.preload`, `package.loaders`, `package.searchers`,
   `package.cpath`, `package.config`, `package.seeall`, `module`,
   unsupported `package.loadlib`
+  (`require` accepts custom Lua 5.1 `package.loaders` and the compatible
+  `package.searchers` alias)
 - `debug`: `debug.traceback`, `debug.getinfo`, `debug.getmetatable`,
   `debug.setmetatable`, `debug.getregistry`, `debug.getfenv`,
   `debug.setfenv`, `debug.getupvalue`, `debug.setupvalue`,

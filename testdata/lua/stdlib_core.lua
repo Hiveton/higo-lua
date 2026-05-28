@@ -118,6 +118,21 @@ if string.sub(package.config, 1, 1) ~= "/" or string.sub(package.config, 3, 3) ~
   error("package.config mismatch")
 end
 
+package.searchers = {
+  function(name)
+    if name == "searcher_runtime" then
+      return function(module_name)
+        return {value = "searcher:" .. module_name}
+      end
+    end
+    return "\n\tsearcher missed"
+  end
+}
+local searcher_mod = require("searcher_runtime")
+if searcher_mod.value ~= "searcher:searcher_runtime" then
+  error("package.searchers require mismatch")
+end
+
 local secret = "up"
 local function probe()
   local local_value = "local"
