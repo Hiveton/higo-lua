@@ -15,6 +15,7 @@ go test ./...
 go test -race ./...
 go run ./cmd/higoluarun test ./testdata/lua
 go run ./cmd/higoluarun ./testdata/lua/basic.lua
+echo 'return "stdin"' | go run ./cmd/higoluarun -
 ```
 
 The `cmd/higoluarun` command runs external Lua files directly from this module.

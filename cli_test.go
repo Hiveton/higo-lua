@@ -88,6 +88,18 @@ func TestHigoLuaRunPrintsMultipleReturnValues(t *testing.T) {
 	}
 }
 
+func TestHigoLuaRunExecutesStdinChunk(t *testing.T) {
+	cmd := exec.Command("go", "run", "./cmd/higoluarun", "-", "from-stdin")
+	cmd.Stdin = strings.NewReader(`return arg[0] .. ":" .. arg[1]`)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("higoluarun stdin failed: %v\n%s", err, output)
+	}
+	if got := strings.TrimSpace(string(output)); got != "-:from-stdin" {
+		t.Fatalf("output = %q, want -:from-stdin", got)
+	}
+}
+
 func TestHigoLuaRunTestRunsDirectoryScripts(t *testing.T) {
 	dir := t.TempDir()
 	if err := os.WriteFile(filepath.Join(dir, "pass.lua"), []byte(`
@@ -105,5 +117,22 @@ end
 	}
 	if got := strings.TrimSpace(string(output)); !strings.Contains(got, "PASS") || !strings.Contains(got, "pass.lua") {
 		t.Fatalf("output = %q, want PASS line for pass.lua", got)
+	}
+}
+
+func TestHigoLuaRunTestReportsFailingScripts(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "bad.lua"), []byte(`error("boom")`), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	cmd := exec.Command("go", "run", "./cmd/higoluarun", "test", dir)
+	output, err := cmd.CombinedOutput()
+	if err == nil {
+		t.Fatalf("higoluarun test succeeded, want failure\n%s", output)
+	}
+	got := string(output)
+	if !strings.Contains(got, "FAIL bad.lua") || !strings.Contains(got, "boom") {
+		t.Fatalf("output = %q, want failing file and error message", got)
 	}
 }

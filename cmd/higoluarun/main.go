@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"sort"
@@ -33,7 +34,7 @@ func run(ctx context.Context, args []string) error {
 }
 
 func usage() error {
-	return fmt.Errorf("usage: higoluarun <script.lua> [args...] | higoluarun test <directory>")
+	return fmt.Errorf("usage: higoluarun <script.lua|-> [args...] | higoluarun test <directory>")
 }
 
 func runScript(ctx context.Context, scriptPath string, scriptArgs []string, printResult bool) error {
@@ -43,7 +44,7 @@ func runScript(ctx context.Context, scriptPath string, scriptArgs []string, prin
 	if err := prependScriptPackagePath(ctx, st, scriptPath); err != nil {
 		return err
 	}
-	source, err := os.ReadFile(scriptPath)
+	source, err := readScriptSource(scriptPath)
 	if err != nil {
 		return err
 	}
@@ -57,8 +58,20 @@ func runScript(ctx context.Context, scriptPath string, scriptArgs []string, prin
 	return nil
 }
 
+func readScriptSource(scriptPath string) (string, error) {
+	if scriptPath == "-" {
+		data, err := io.ReadAll(os.Stdin)
+		return string(data), err
+	}
+	data, err := os.ReadFile(scriptPath)
+	return string(data), err
+}
+
 func prependScriptPackagePath(ctx context.Context, st *state.State, scriptPath string) error {
 	dir := filepath.Dir(scriptPath)
+	if scriptPath == "-" {
+		dir = "."
+	}
 	patterns := []string{
 		filepath.ToSlash(filepath.Join(dir, "?.lua")),
 		filepath.ToSlash(filepath.Join(dir, "?", "init.lua")),
