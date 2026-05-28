@@ -2269,7 +2269,11 @@ func (s *State) openStdlib() {
 			return value.String(text[start-1 : end]), nil
 		}})
 		str.Set(value.String("rep"), &goFunction{fn: func(ctx context.Context, args Args) (value.Value, error) {
-			return value.String(strings.Repeat(args.String(0), int(args.Number(1)))), nil
+			count := int(args.Number(1))
+			if count <= 0 {
+				return value.String(""), nil
+			}
+			return value.String(strings.Repeat(args.String(0), count)), nil
 		}})
 		str.Set(value.String("format"), &goFunction{fn: func(ctx context.Context, args Args) (value.Value, error) {
 			format, formatArgs := luaFormatArgs(args.String(0), []value.Value(args[1:]))

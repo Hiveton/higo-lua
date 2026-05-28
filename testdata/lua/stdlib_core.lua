@@ -22,6 +22,9 @@ end
 if string.sub("abc", 2) ~= "bc" or string.sub("abc", 1, 0) ~= "" or string.sub("abc", 1, -1) ~= "abc" then
   error("string.sub explicit zero end mismatch")
 end
+if string.rep("go", 2) ~= "gogo" or string.rep("go", 0) ~= "" or string.rep("go", -2) ~= "" then
+  error("string.rep non-positive count mismatch")
+end
 
 local assert_a, assert_b, assert_c = assert("ok", "left", "right")
 if assert_a ~= "ok" or assert_b ~= "left" or assert_c ~= "right" then
