@@ -9,8 +9,16 @@ go test ./...
 go test -race ./...
 
 go run ./cmd/higoluarun ./testdata/lua/basic.lua
-go run ./cmd/higoluarun -e 'return arg[0] .. ":" .. arg[1] .. ":" .. (3 * 7)' inline
-printf 'return arg[0] .. ":" .. arg[1]\n' | go run ./cmd/higoluarun - cliarg
+inline_output="$(go run ./cmd/higoluarun -e 'return arg[0] .. ":" .. #arg .. ":" .. arg.n .. ":" .. arg[1] .. ":" .. (3 * 7)' inline)"
+if [[ "$inline_output" != "-e:1:1:inline:21" ]]; then
+	echo "inline CLI output = $inline_output, want -e:1:1:inline:21" >&2
+	exit 1
+fi
+stdin_output="$(printf 'return arg[0] .. ":" .. #arg .. ":" .. arg.n .. ":" .. arg[1]\n' | go run ./cmd/higoluarun - cliarg)"
+if [[ "$stdin_output" != "-:1:1:cliarg" ]]; then
+	echo "stdin CLI output = $stdin_output, want -:1:1:cliarg" >&2
+	exit 1
+fi
 go run ./cmd/higoluarun test ./testdata/lua
 
 tmp="$(mktemp -d)"

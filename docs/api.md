@@ -23,7 +23,8 @@ echo 'return "stdin"' | go run ./cmd/higoluarun -
 
 Arguments after the script path or inline chunk are exposed through the Lua
 `arg` table, with `arg[0]` set to the script path, `-`, or `-e`, and `arg[1]`,
-`arg[2]`, ... set to user arguments.
+`arg[2]`, ... set to user arguments. `arg.n` and `#arg` report the number of
+user arguments.
 When the script path is `-`, source is read from standard input and `arg[0]`
 is `-`.
 File and reader-based execution skip a leading Unix shebang line such as

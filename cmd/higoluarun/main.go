@@ -153,6 +153,7 @@ func runTestDir(ctx context.Context, dir string) error {
 func argTable(scriptPath string, scriptArgs []string) *value.Table {
 	tab := value.NewTable()
 	tab.Set(value.Number(0), value.String(scriptPath))
+	tab.Set(value.String("n"), value.Number(len(scriptArgs)))
 	for i, arg := range scriptArgs {
 		tab.Set(value.Number(i+1), value.String(arg))
 	}

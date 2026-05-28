@@ -128,6 +128,17 @@ func TestHigoLuaRunExecutesInlineChunk(t *testing.T) {
 	}
 }
 
+func TestHigoLuaRunArgTableReportsArgumentCount(t *testing.T) {
+	cmd := exec.Command("go", "run", "./cmd/higoluarun", "-e", `return arg[0] .. ":" .. #arg .. ":" .. tostring(arg.n) .. ":" .. arg[1] .. ":" .. arg[2]`, "left", "right")
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("higoluarun -e failed: %v\n%s", err, output)
+	}
+	if got := strings.TrimSpace(string(output)); got != "-e:2:2:left:right" {
+		t.Fatalf("output = %q, want arg count metadata", got)
+	}
+}
+
 func TestHigoLuaRunTestRunsDirectoryScripts(t *testing.T) {
 	dir := t.TempDir()
 	if err := os.WriteFile(filepath.Join(dir, "pass.lua"), []byte(`

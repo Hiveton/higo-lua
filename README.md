@@ -33,8 +33,9 @@ The `cmd/higoluarun` command runs external Lua files directly from this module.
 It also has a `test <directory>` mode for executing compatibility scripts under
 `testdata/lua`. The runner adds the script directory to `package.path`, so
 single-file tools can require helper modules placed beside the entry script.
-Use `-e <chunk>` for inline Lua snippets. File and reader-based execution accept
-Unix shebang scripts that start with `#!/usr/bin/env lua`.
+Use `-e <chunk>` for inline Lua snippets. CLI arguments are exposed through
+`arg[0]`, `arg[1]`, ... and `arg.n`. File and reader-based execution accept Unix
+shebang scripts that start with `#!/usr/bin/env lua`.
 
 See `docs/api.md` and `docs/architecture.md`.
 
