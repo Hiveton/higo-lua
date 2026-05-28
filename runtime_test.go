@@ -2195,13 +2195,14 @@ func TestLua51OSDateFormatsExplicitTime(t *testing.T) {
 	if err := st.DoString(context.Background(), `
 local formatted = os.date("!%Y-%m-%d %H:%M:%S", 0)
 local ordinal = os.date("!%w:%j", 0)
+local names = os.date("!%a:%A:%b:%B", 0)
 local t = os.date("!*t", 0)
-result = formatted .. ":" .. ordinal .. ":" .. t.year .. ":" .. t.month .. ":" .. t.day .. ":" .. t.hour .. ":" .. t.min .. ":" .. t.sec .. ":" .. tostring(t.isdst)
+result = formatted .. ":" .. ordinal .. ":" .. names .. ":" .. t.year .. ":" .. t.month .. ":" .. t.day .. ":" .. t.hour .. ":" .. t.min .. ":" .. t.sec .. ":" .. tostring(t.isdst)
 `); err != nil {
 		t.Fatalf("DoString() error = %v", err)
 	}
 	got, _ := st.GetGlobal("result")
-	if got.String() != "1970-01-01 00:00:00:4:001:1970:1:1:0:0:0:false" {
+	if got.String() != "1970-01-01 00:00:00:4:001:Thu:Thursday:Jan:January:1970:1:1:0:0:0:false" {
 		t.Fatalf("result = %q, want os.date explicit UTC formatting and table fields", got.String())
 	}
 }

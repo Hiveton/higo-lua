@@ -3445,6 +3445,14 @@ func luaDateFormat(format string, t time.Time) string {
 		switch format[i] {
 		case '%':
 			b.WriteByte('%')
+		case 'a':
+			b.WriteString(t.Format("Mon"))
+		case 'A':
+			b.WriteString(t.Format("Monday"))
+		case 'b':
+			b.WriteString(t.Format("Jan"))
+		case 'B':
+			b.WriteString(t.Format("January"))
 		case 'Y':
 			b.WriteString(fmt.Sprintf("%04d", t.Year()))
 		case 'y':
