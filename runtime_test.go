@@ -1130,12 +1130,14 @@ func TestUnpackReturnsMultipleValues(t *testing.T) {
 	if err := st.DoString(context.Background(), `
 local a, b, c = unpack({"A", "B", "C"})
 local x, y = table.unpack({9, 8, 7}, 2)
-result = a .. b .. c .. ":" .. x .. y
+local p, q, r = unpack({"P"}, 1, 3)
+local count = select("#", unpack({"P"}, 1, 3))
+result = a .. b .. c .. ":" .. x .. y .. ":" .. p .. ":" .. tostring(q) .. ":" .. tostring(r) .. ":" .. count
 `); err != nil {
 		t.Fatalf("DoString() error = %v", err)
 	}
 	got, _ := st.GetGlobal("result")
-	if got.String() != "ABC:87" {
+	if got.String() != "ABC:87:P:nil:nil:3" {
 		t.Fatalf("result = %q, want ABC:87", got.String())
 	}
 }

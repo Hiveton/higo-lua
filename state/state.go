@@ -1961,9 +1961,22 @@ func (s *State) openStdlib() {
 			if !ok {
 				return nil, fmt.Errorf("unpack expects table")
 			}
-			start := int(args.Number(1))
-			end := int(args.Number(2))
-			return t.Values(start, end), nil
+			start := 1
+			if args.Get(1) != value.Nil {
+				start = int(args.Number(1))
+			}
+			end := t.Len()
+			if args.Get(2) != value.Nil {
+				end = int(args.Number(2))
+			}
+			if start > end {
+				return nil, nil
+			}
+			values := make([]value.Value, 0, end-start+1)
+			for i := start; i <= end; i++ {
+				values = append(values, t.Get(value.Number(i)))
+			}
+			return values, nil
 		}})
 		s.global.set("loadstring", &multiGoFunction{fn: func(ctx context.Context, args Args) ([]value.Value, error) {
 			source := args.String(0)

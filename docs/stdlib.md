@@ -9,8 +9,9 @@ The default profile opens these modules:
   `rawset`, `setmetatable`, `getmetatable`, `getfenv`, `setfenv`, `_G`,
   `select`
   (`tonumber` supports bases 2 through 36; `load` supports string chunks and
-  reader functions; `setmetatable`/`getmetatable` honor `__metatable`;
-  `getfenv`/`setfenv` support functions and Lua stack levels)
+  reader functions; `unpack` preserves explicit range nils;
+  `setmetatable`/`getmetatable` honor `__metatable`; `getfenv`/`setfenv`
+  support functions and Lua stack levels)
 - `table`: `table.insert`, `table.remove`, `table.sort`, `table.concat`,
   `table.unpack`, `table.getn`, `table.maxn`, `table.foreach`,
   `table.foreachi`
