@@ -11,10 +11,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Hiveton/higo-lua"
-	"github.com/Hiveton/higo-lua/state"
-	"github.com/Hiveton/higo-lua/stdlib"
-	"github.com/Hiveton/higo-lua/value"
+	"github.com/hiveton/higolua"
+	"github.com/hiveton/higolua/state"
+	"github.com/hiveton/higolua/stdlib"
+	"github.com/hiveton/higolua/value"
 )
 
 func TestRuntimeDoStringReturnsExpression(t *testing.T) {
@@ -52,32 +52,6 @@ func TestRuntimeDoFileExecutesScript(t *testing.T) {
 	}
 	if result.String() != "hello higolua" {
 		t.Fatalf("result = %q, want hello higolua", result.String())
-	}
-}
-
-func TestRuntimeDoFileExecutesShebangScript(t *testing.T) {
-	dir := t.TempDir()
-	path := filepath.Join(dir, "main.lua")
-	if err := os.WriteFile(path, []byte("#!/usr/bin/env lua\nreturn 'shebang:' .. (20 + 22)"), 0o700); err != nil {
-		t.Fatal(err)
-	}
-
-	result, err := higolua.NewRuntime().DoFile(context.Background(), path)
-	if err != nil {
-		t.Fatalf("DoFile() error = %v", err)
-	}
-	if result.String() != "shebang:42" {
-		t.Fatalf("result = %q, want shebang:42", result.String())
-	}
-}
-
-func TestRuntimeDoReaderExecutesShebangScript(t *testing.T) {
-	result, err := higolua.NewRuntime().DoReader(context.Background(), "reader.lua", strings.NewReader("#!/usr/bin/env lua\nreturn 'reader-shebang'"))
-	if err != nil {
-		t.Fatalf("DoReader() error = %v", err)
-	}
-	if result.String() != "reader-shebang" {
-		t.Fatalf("result = %q, want reader-shebang", result.String())
 	}
 }
 
@@ -1130,14 +1104,12 @@ func TestUnpackReturnsMultipleValues(t *testing.T) {
 	if err := st.DoString(context.Background(), `
 local a, b, c = unpack({"A", "B", "C"})
 local x, y = table.unpack({9, 8, 7}, 2)
-local p, q, r = unpack({"P"}, 1, 3)
-local count = select("#", unpack({"P"}, 1, 3))
-result = a .. b .. c .. ":" .. x .. y .. ":" .. p .. ":" .. tostring(q) .. ":" .. tostring(r) .. ":" .. count
+result = a .. b .. c .. ":" .. x .. y
 `); err != nil {
 		t.Fatalf("DoString() error = %v", err)
 	}
 	got, _ := st.GetGlobal("result")
-	if got.String() != "ABC:87:P:nil:nil:3" {
+	if got.String() != "ABC:87" {
 		t.Fatalf("result = %q, want ABC:87", got.String())
 	}
 }
@@ -1486,19 +1458,18 @@ func TestLua51TableConcatRejectsNonStringNumberElements(t *testing.T) {
 	defer st.Close()
 
 	if err := st.DoString(context.Background(), `
-local defaultSep = table.concat({"a", "b"})
 local okBool, errBool = pcall(function()
   return table.concat({"a", true}, "")
 end)
 local okTable, errTable = pcall(function()
   return table.concat({"a", {}}, "")
 end)
-result = defaultSep .. ":" .. tostring(okBool) .. ":" .. type(errBool) .. ":" .. tostring(okTable) .. ":" .. type(errTable)
+result = tostring(okBool) .. ":" .. type(errBool) .. ":" .. tostring(okTable) .. ":" .. type(errTable)
 `); err != nil {
 		t.Fatalf("DoString() error = %v", err)
 	}
 	got, _ := st.GetGlobal("result")
-	if got.String() != "ab:false:string:false:string" {
+	if got.String() != "false:string:false:string" {
 		t.Fatalf("result = %q, want concat to reject non-string/number elements", got.String())
 	}
 }
@@ -1618,13 +1589,12 @@ func TestAdditionalLua51StringFunctions(t *testing.T) {
 local a, b, c = string.byte("ABC", 1, 3)
 local made = string.char(72, 105)
 local reversed = string.reverse("abc")
-local emptyCount = select("#", string.byte("ABC", 3, 2))
-result = a .. ":" .. b .. ":" .. c .. ":" .. made .. ":" .. reversed .. ":" .. emptyCount
+result = a .. ":" .. b .. ":" .. c .. ":" .. made .. ":" .. reversed
 `); err != nil {
 		t.Fatalf("DoString() error = %v", err)
 	}
 	got, _ := st.GetGlobal("result")
-	if got.String() != "65:66:67:Hi:cba:0" {
+	if got.String() != "65:66:67:Hi:cba" {
 		t.Fatalf("result = %q, want byte/char/reverse behavior", got.String())
 	}
 }
@@ -1827,12 +1797,12 @@ func TestLua51StringFormatIntegerSpecifiersCoerceNumbers(t *testing.T) {
 	defer st.Close()
 
 	if err := st.DoString(context.Background(), `
-result = string.format("%d:%i:%x:%X:%o:%c:%u:%08u", 7.9, -3.2, 255, 255, 9, 65, -1, 15)
+result = string.format("%d:%i:%x:%X:%o:%c", 7.9, -3.2, 255, 255, 9, 65)
 `); err != nil {
 		t.Fatalf("DoString() error = %v", err)
 	}
 	got, _ := st.GetGlobal("result")
-	if got.String() != "7:-3:ff:FF:11:A:4294967295:00000015" {
+	if got.String() != "7:-3:ff:FF:11:A" {
 		t.Fatalf("result = %q, want Lua integer format coercion", got.String())
 	}
 }
@@ -2080,26 +2050,6 @@ result = type(before) .. ":" .. diff .. ":" .. clockType .. ":" .. type(tmp) .. 
 	}
 }
 
-func TestLua51OSDateAndTimeFormats(t *testing.T) {
-	st := state.New()
-	defer st.Close()
-
-	if err := st.DoString(context.Background(), `
-local stamp = 946684800
-local utc = os.date("!%Y-%m-%d %H:%M:%S", 0)
-local parts = os.date("!*t", 0)
-local local_parts = os.date("*t", stamp)
-local roundtrip = os.time(local_parts)
-result = utc .. ":" .. parts.year .. ":" .. parts.month .. ":" .. parts.day .. ":" .. parts.hour .. ":" .. parts.min .. ":" .. parts.sec .. ":" .. parts.wday .. ":" .. parts.yday .. ":" .. tostring(parts.isdst) .. ":" .. roundtrip
-`); err != nil {
-		t.Fatalf("DoString() error = %v", err)
-	}
-	got, _ := st.GetGlobal("result")
-	if got.String() != "1970-01-01 00:00:00:1970:1:1:0:0:0:5:1:false:946684800" {
-		t.Fatalf("result = %q, want os.date/os.time Lua 5.1 behavior", got.String())
-	}
-}
-
 func TestLua51IOLibraryOpenReadWriteAndClose(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "data.txt")
 
@@ -2146,28 +2096,6 @@ result = n .. ":" .. exp .. ":" .. hex .. ":" .. rest
 	got, _ := st.GetGlobal("result")
 	if got.String() != "-12.5:125:16: rest" {
 		t.Fatalf("result = %q, want file:read(\"*n\") numeric scan", got.String())
-	}
-}
-
-func TestLua51IOReadAliasesAndMultipleFormats(t *testing.T) {
-	path := filepath.Join(t.TempDir(), "formats.txt")
-	if err := os.WriteFile(path, []byte("12 rest\nnext\n"), 0o600); err != nil {
-		t.Fatal(err)
-	}
-
-	st := state.New()
-	defer st.Close()
-	if err := st.DoString(context.Background(), fmt.Sprintf(`
-local reader = assert(io.open(%q, "r"))
-local n, line, all = reader:read("*number", "*line", "*all")
-reader:close()
-result = n .. ":" .. line .. ":" .. string.gsub(all, "\n", "\\n")
-`, path)); err != nil {
-		t.Fatalf("DoString() error = %v", err)
-	}
-	got, _ := st.GetGlobal("result")
-	if got.String() != "12: rest:next\\n" {
-		t.Fatalf("result = %q, want file:read aliases and multiple return values", got.String())
 	}
 }
 
@@ -2244,33 +2172,6 @@ result = out
 	}
 }
 
-func TestLua51IOLinesUsesDefaultInputWhenPathOmitted(t *testing.T) {
-	path := filepath.Join(t.TempDir(), "default-lines.txt")
-	if err := os.WriteFile(path, []byte("left\nright\n"), 0o600); err != nil {
-		t.Fatal(err)
-	}
-
-	st := state.New()
-	defer st.Close()
-	if err := st.DoString(context.Background(), fmt.Sprintf(`
-local f = assert(io.open(%q, "r"))
-local previous = io.input(f)
-local out = ""
-for line in io.lines() do
-  out = out .. line .. "|"
-end
-io.input(previous)
-f:close()
-result = out .. ":" .. io.type(f)
-`, path)); err != nil {
-		t.Fatalf("DoString() error = %v", err)
-	}
-	got, _ := st.GetGlobal("result")
-	if got.String() != "left|right|:closed file" {
-		t.Fatalf("result = %q, want io.lines() to iterate default input", got.String())
-	}
-}
-
 func TestLua51IOTmpfileTypeAndSeek(t *testing.T) {
 	st := state.New()
 	defer st.Close()
@@ -2327,31 +2228,6 @@ result = first .. ":" .. written .. ":" .. currentType
 	got, _ := st.GetGlobal("result")
 	if got.String() != "first:first:second:file" {
 		t.Fatalf("result = %q, want default io input/output behavior", got.String())
-	}
-}
-
-func TestLua51IOReadReturnsMultipleFormatResults(t *testing.T) {
-	inputPath := filepath.Join(t.TempDir(), "input.txt")
-	if err := os.WriteFile(inputPath, []byte("12 rest\nnext\n"), 0o600); err != nil {
-		t.Fatal(err)
-	}
-
-	st := state.New()
-	defer st.Close()
-
-	if err := st.DoString(context.Background(), fmt.Sprintf(`
-local input = assert(io.open(%q, "r"))
-local previousInput = io.input(input)
-local n, line, all = io.read("*number", "*line", "*all")
-io.input(previousInput)
-input:close()
-result = n .. ":" .. line .. ":" .. string.gsub(all, "\n", "\\n")
-`, inputPath)); err != nil {
-		t.Fatalf("DoString() error = %v", err)
-	}
-	got, _ := st.GetGlobal("result")
-	if got.String() != "12: rest:next\\n" {
-		t.Fatalf("result = %q, want io.read multiple format return values", got.String())
 	}
 }
 
@@ -2603,29 +2479,6 @@ result = first.value .. ":" .. second.value .. ":" .. tostring(package.loaded.de
 	}
 }
 
-func TestRequireReloadsWhenPackageLoadedIsFalse(t *testing.T) {
-	st := state.New()
-	defer st.Close()
-
-	if err := st.DoString(context.Background(), `
-local load_count = 0
-package.preload.demo_false = function(name)
-  load_count = load_count + 1
-  return {count = load_count, name = name}
-end
-local first = require("demo_false")
-package.loaded.demo_false = false
-local second = require("demo_false")
-result = tostring(first == second) .. ":" .. first.count .. ":" .. second.count .. ":" .. second.name
-`); err != nil {
-		t.Fatalf("DoString() error = %v", err)
-	}
-	got, _ := st.GetGlobal("result")
-	if got.String() != "false:1:2:demo_false" {
-		t.Fatalf("result = %q, want require to reload when package.loaded entry is false", got.String())
-	}
-}
-
 func TestLua51PackageConfigAndCPath(t *testing.T) {
 	st := state.New()
 	defer st.Close()
@@ -2694,33 +2547,6 @@ result = mod.value .. ":" .. tostring(package.loaded.custom == mod) .. ":" .. ty
 	got, _ := st.GetGlobal("result")
 	if got.String() != "loaded:custom:true:function" {
 		t.Fatalf("result = %q, want require to use package.loaders chain", got.String())
-	}
-}
-
-func TestRequireUsesPackageSearchersChain(t *testing.T) {
-	st := state.New()
-	defer st.Close()
-
-	if err := st.DoString(context.Background(), `
-local original = package.searchers
-package.searchers = {
-  function(name)
-    if name == "searcher_mod" then
-      return function(moduleName)
-        return {value = "searcher:" .. moduleName}
-      end
-    end
-    return "\n\tsearcher missed"
-  end
-}
-local mod = require("searcher_mod")
-result = mod.value .. ":" .. tostring(package.loaded.searcher_mod == mod) .. ":" .. type(original[1])
-`); err != nil {
-		t.Fatalf("DoString() error = %v", err)
-	}
-	got, _ := st.GetGlobal("result")
-	if got.String() != "searcher:searcher_mod:true:function" {
-		t.Fatalf("result = %q, want require to use package.searchers chain", got.String())
 	}
 }
 

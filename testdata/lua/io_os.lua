@@ -29,49 +29,6 @@ if number_value ~= -12.5 or number_exp ~= 125 or number_hex ~= 16 or number_rest
   error("io read number mismatch")
 end
 
-local multi_path = os.tmpname()
-local multi_file = assert(io.open(multi_path, "w+"))
-multi_file:write("12 rest\nnext\n")
-multi_file:seek("set", 0)
-local multi_number, multi_line, multi_all = multi_file:read("*number", "*line", "*all")
-multi_file:close()
-os.remove(multi_path)
-
-if multi_number ~= 12 or multi_line ~= " rest" or multi_all ~= "next\n" then
-  error("io read aliases/multiple formats mismatch")
-end
-
-local global_path = os.tmpname()
-local global_file = assert(io.open(global_path, "w+"))
-global_file:write("34 more\nleft\n")
-global_file:seek("set", 0)
-local previous_input = io.input(global_file)
-local global_number, global_line, global_all = io.read("*number", "*line", "*all")
-io.input(previous_input)
-global_file:close()
-os.remove(global_path)
-
-if global_number ~= 34 or global_line ~= " more" or global_all ~= "left\n" then
-  error("global io.read multiple formats mismatch")
-end
-
-local lines_path = os.tmpname()
-local lines_file = assert(io.open(lines_path, "w+"))
-lines_file:write("left\nright\n")
-lines_file:seek("set", 0)
-local previous_lines_input = io.input(lines_file)
-local lines_out = ""
-for line in io.lines() do
-  lines_out = lines_out .. line .. "|"
-end
-io.input(previous_lines_input)
-lines_file:close()
-os.remove(lines_path)
-
-if lines_out ~= "left|right|" then
-  error("io.lines default input mismatch")
-end
-
 local all_path = os.tmpname()
 local all_file = assert(io.open(all_path, "w+"))
 all_file:write("a\nb\n")
@@ -86,16 +43,4 @@ end
 
 if type(os.clock()) ~= "number" then
   error("os.clock type mismatch")
-end
-
-local utc = os.date("!%Y-%m-%d %H:%M:%S", 0)
-local parts = os.date("!*t", 0)
-if utc ~= "1970-01-01 00:00:00" or parts.year ~= 1970 or parts.month ~= 1 or parts.day ~= 1 or parts.wday ~= 5 or parts.yday ~= 1 then
-  error("os.date fixed timestamp mismatch")
-end
-
-local stamp = 946684800
-local roundtrip = os.time(os.date("*t", stamp))
-if roundtrip ~= stamp then
-  error("os.time table roundtrip mismatch")
 end

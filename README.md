@@ -11,33 +11,14 @@ result, err := rt.DoString(context.Background(), `return 1 + 2 * 3`)
 Run the library checks:
 
 ```bash
-scripts/verify.sh
-```
-
-The verification script runs the full package test suite, race tests, CLI Lua
-script execution, directory-based Lua compatibility scripts, stdin execution,
-and an external Go module smoke test that imports `github.com/Hiveton/higo-lua`.
-
-Individual checks:
-
-```bash
 go test ./...
 go test -race ./...
-go run ./cmd/higoluarun test ./testdata/lua
-go run ./cmd/higoluarun -e 'return 1 + 2'
-go run ./cmd/higoluarun ./testdata/lua/basic.lua
-echo 'return "stdin"' | go run ./cmd/higoluarun -
+(cd ../runtime-examples && go run ./cmd/higoluarun test ../higolua/testdata/lua)
 ```
 
-The `cmd/higoluarun` command runs external Lua files directly from this module.
-It also has a `test <directory>` mode for executing compatibility scripts under
-`testdata/lua`. The runner adds the script directory to `package.path`, so
-single-file tools can require helper modules placed beside the entry script.
-Use `-e <chunk>` for inline Lua snippets. CLI arguments are exposed through
-`arg[0]`, `arg[1]`, ... and `arg.n`. File and reader-based execution accept Unix
-shebang scripts that start with `#!/usr/bin/env lua`. When a script calls
-`os.exit(code)`, the command exits with that code. In `test <directory>` mode,
-`os.exit(0)` is reported as `PASS`; non-zero exits are reported as `FAIL`.
+The CLI and runnable integration examples live in the separate
+`../runtime-examples` module. That project imports this library through the
+public `github.com/hiveton/higolua` API.
 
 See `docs/api.md` and `docs/architecture.md`.
 

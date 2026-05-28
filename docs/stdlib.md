@@ -9,13 +9,11 @@ The default profile opens these modules:
   `rawset`, `setmetatable`, `getmetatable`, `getfenv`, `setfenv`, `_G`,
   `select`
   (`tonumber` supports bases 2 through 36; `load` supports string chunks and
-  reader functions; `unpack` preserves explicit range nils;
-  `setmetatable`/`getmetatable` honor `__metatable`; `getfenv`/`setfenv`
-  support functions and Lua stack levels)
+  reader functions; `setmetatable`/`getmetatable` honor `__metatable`;
+  `getfenv`/`setfenv` support functions and Lua stack levels)
 - `table`: `table.insert`, `table.remove`, `table.sort`, `table.concat`,
   `table.unpack`, `table.getn`, `table.maxn`, `table.foreach`,
   `table.foreachi`
-  (`table.concat` defaults to an empty separator)
 - `string`: `string.len`, `string.upper`, `string.lower`, `string.byte`,
   `string.char`, `string.reverse`, `string.sub`, `string.rep`,
   `string.find`, `string.match`, `string.gmatch`, `string.gsub`,
@@ -31,20 +29,14 @@ The default profile opens these modules:
   `io.close`, `io.open`, `io.popen`, `io.lines`, `io.tmpfile`, `io.type`,
   `io.stdin`, `io.stdout`, `io.stderr`, file handles with `read`, `write`,
   `flush`, `close`, `lines`, `seek`, and `setvbuf`
-  (`file:read` and `io.read` support `*l`/`*line`, `*a`/`*all`,
-  `*n`/`*number`, byte counts, and multiple format arguments; `io.lines()`
-  iterates the current default input)
+  (`file:read` supports `*l`, `*a`, `*n`, and byte counts)
 - `os`: `os.time`, `os.date`, `os.clock`, `os.difftime`, `os.getenv`,
   `os.tmpname`, `os.rename`, `os.remove`, `os.execute`, `os.setlocale`,
   `os.exit`
-  (`os.date` supports formatted dates, `*t` tables, and the `!` UTC prefix;
-  `os.time` accepts Lua date tables)
 - `package`: `require`, `package.path`, `package.loaded`,
   `package.preload`, `package.loaders`, `package.searchers`,
   `package.cpath`, `package.config`, `package.seeall`, `module`,
   unsupported `package.loadlib`
-  (`require` accepts custom Lua 5.1 `package.loaders` and the compatible
-  `package.searchers` alias; `package.loaded[name] = false` forces reload)
 - `debug`: `debug.traceback`, `debug.getinfo`, `debug.getmetatable`,
   `debug.setmetatable`, `debug.getregistry`, `debug.getfenv`,
   `debug.setfenv`, `debug.getupvalue`, `debug.setupvalue`,
@@ -73,9 +65,7 @@ Frontier assertions through `%f[...]` are supported for common byte-oriented
 classes. `string.gsub` supports string, table, and function replacements.
 `string.format` accepts Lua integer-style specifiers such as `%d`, `%i`, `%o`,
 `%u`, `%x`, `%X`, and `%c` by coercing Lua numbers to integers before passing
-them to the formatter. `%u` uses 32-bit unsigned integer formatting.
-`string.byte` preserves Lua multi-return counts, including zero values for
-empty ranges.
+them to the formatter.
 Advanced Lua pattern features such as embedded balanced items are still
 remaining compatibility items.
 

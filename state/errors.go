@@ -1,7 +1,5 @@
 package state
 
-import "fmt"
-
 type SyntaxError struct {
 	Chunk  string
 	Line   int
@@ -39,9 +37,3 @@ type ContextError struct {
 
 func (e *ContextError) Error() string { return e.Err.Error() }
 func (e *ContextError) Unwrap() error { return e.Err }
-
-type ExitError struct {
-	Code int
-}
-
-func (e *ExitError) Error() string { return fmt.Sprintf("os.exit(%d)", e.Code) }

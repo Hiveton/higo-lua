@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Hiveton/higo-lua/internal/parser"
+	"github.com/hiveton/higolua/internal/parser"
 )
 
 func TestBytecodeHostCallsIncludesMetatablePrimitives(t *testing.T) {

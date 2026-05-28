@@ -1,3 +1,3 @@
-module github.com/Hiveton/higo-lua
+module github.com/hiveton/higolua
 
 go 1.22

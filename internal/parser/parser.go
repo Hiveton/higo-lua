@@ -3,8 +3,8 @@ package parser
 import (
 	"fmt"
 
-	"github.com/Hiveton/higo-lua/internal/ast"
-	"github.com/Hiveton/higo-lua/internal/lexer"
+	"github.com/hiveton/higolua/internal/ast"
+	"github.com/hiveton/higolua/internal/lexer"
 )
 
 type Parser struct {

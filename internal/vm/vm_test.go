@@ -5,10 +5,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Hiveton/higo-lua/internal/bytecode"
-	"github.com/Hiveton/higo-lua/internal/parser"
-	"github.com/Hiveton/higo-lua/internal/vm"
-	"github.com/Hiveton/higo-lua/value"
+	"github.com/hiveton/higolua/internal/bytecode"
+	"github.com/hiveton/higolua/internal/parser"
+	"github.com/hiveton/higolua/internal/vm"
+	"github.com/hiveton/higolua/value"
 )
 
 type testGlobals map[string]value.Value

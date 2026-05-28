@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/Hiveton/higo-lua/internal/bytecode"
-	"github.com/Hiveton/higo-lua/value"
+	"github.com/hiveton/higolua/internal/bytecode"
+	"github.com/hiveton/higolua/value"
 )
 
 type Engine interface {

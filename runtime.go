@@ -5,9 +5,9 @@ import (
 	"io"
 	"os"
 
-	"github.com/Hiveton/higo-lua/state"
-	"github.com/Hiveton/higo-lua/stdlib"
-	"github.com/Hiveton/higo-lua/value"
+	"github.com/hiveton/higolua/state"
+	"github.com/hiveton/higolua/stdlib"
+	"github.com/hiveton/higolua/value"
 )
 
 type Runtime struct {

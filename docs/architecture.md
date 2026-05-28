@@ -1,8 +1,8 @@
 # HiGoLua Architecture
 
 HiGoLua is a pure Go Lua 5.1 runtime library. The public API is split between
-`github.com/Hiveton/higo-lua` for simple one-shot execution and
-`github.com/Hiveton/higo-lua/state` for embedded hosts that need globals, Go
+`github.com/hiveton/higolua` for simple one-shot execution and
+`github.com/hiveton/higolua/state` for embedded hosts that need globals, Go
 function registration, and Go-to-Lua calls.
 
 The default engine now attempts bytecode execution first for the verified

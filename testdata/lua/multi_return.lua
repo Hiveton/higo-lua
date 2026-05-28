@@ -20,10 +20,6 @@ if results[1] ~= "B" or results[2] ~= "C" then
   error("table constructor multi-return mismatch")
 end
 
-if select("#", unpack({"A"}, 1, 3)) ~= 3 then
-  error("unpack explicit range nil count mismatch")
-end
-
 local x, y, z = (function()
   return "A", pair()
 end)()

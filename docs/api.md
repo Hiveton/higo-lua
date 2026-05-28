@@ -11,39 +11,6 @@ result, err = rt.DoReader(ctx, "reader.lua", strings.NewReader(`return "ok"`))
 
 `Runtime` creates an isolated state for each call.
 
-## Command Line Runner
-
-Run an external Lua file:
-
-```bash
-go run ./cmd/higoluarun -e 'return 1 + 2'
-go run ./cmd/higoluarun ./testdata/lua/basic.lua
-echo 'return "stdin"' | go run ./cmd/higoluarun -
-```
-
-Arguments after the script path or inline chunk are exposed through the Lua
-`arg` table, with `arg[0]` set to the script path, `-`, or `-e`, and `arg[1]`,
-`arg[2]`, ... set to user arguments. `arg.n` and `#arg` report the number of
-user arguments.
-When the script path is `-`, source is read from standard input and `arg[0]`
-is `-`.
-File and reader-based execution skip a leading Unix shebang line such as
-`#!/usr/bin/env lua`, matching common executable Lua script usage.
-
-The runner automatically prepends the script directory to `package.path`, so a
-script can `require("helper")` from `helper.lua` beside the entry file without
-manual path setup. If a script returns multiple values, they are printed as a
-tab-separated line.
-
-Run every `.lua` file in a directory:
-
-```bash
-go run ./cmd/higoluarun test ./testdata/lua
-```
-
-The test mode prints one `PASS` or `FAIL` line per script and exits non-zero if
-any script fails.
-
 ## Embedded State
 
 ```go
@@ -95,7 +62,6 @@ APIs return stable error types that work with `errors.As`:
 - `higolua.RuntimeError` / `state.RuntimeError`
 - `higolua.BridgeError` / `state.BridgeError`
 - `higolua.ContextError` / `state.ContextError`
-- `higolua.ExitError` / `state.ExitError`
 
 The error string remains the underlying Lua-facing message; `Unwrap` exposes the
 original error for callers that need lower-level details.
@@ -104,6 +70,3 @@ original error for callers that need lower-level details.
 `Chunk`, `Line`, `Column`, and a basic Lua function call stack. `BridgeError`
 keeps the registered Go function name and, when available from the statement
 boundary, the Lua source position that triggered it.
-`ExitError` carries the `os.exit` status code so command-line hosts can exit
-with the Lua script's requested status. It is not caught by `pcall` or
-`xpcall`.

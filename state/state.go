@@ -18,13 +18,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Hiveton/higo-lua/internal/ast"
-	"github.com/Hiveton/higo-lua/internal/bytecode"
-	"github.com/Hiveton/higo-lua/internal/lexer"
-	"github.com/Hiveton/higo-lua/internal/parser"
-	"github.com/Hiveton/higo-lua/internal/vm"
-	"github.com/Hiveton/higo-lua/stdlib"
-	"github.com/Hiveton/higo-lua/value"
+	"github.com/hiveton/higolua/internal/ast"
+	"github.com/hiveton/higolua/internal/bytecode"
+	"github.com/hiveton/higolua/internal/lexer"
+	"github.com/hiveton/higolua/internal/parser"
+	"github.com/hiveton/higolua/internal/vm"
+	"github.com/hiveton/higolua/stdlib"
+	"github.com/hiveton/higolua/value"
 )
 
 type GoFunc func(context.Context, Args) (value.Value, error)
@@ -421,7 +421,6 @@ func (s *State) DoChunkValues(ctx context.Context, name, source string) (out []v
 	if s.closed {
 		return nil, &RuntimeError{Chunk: name, Err: errors.New("higolua: state is closed")}
 	}
-	source = stripShebang(source)
 	chunk, err := parser.Parse(name, source)
 	if err != nil {
 		return nil, newSyntaxError(name, err)
@@ -447,17 +446,6 @@ func (s *State) DoChunkValues(ctx context.Context, name, source string) (out []v
 		return res.values, nil
 	}
 	return []value.Value{value.Nil}, nil
-}
-
-func stripShebang(source string) string {
-	if !strings.HasPrefix(source, "#!") {
-		return source
-	}
-	newline := strings.IndexByte(source, '\n')
-	if newline < 0 {
-		return "\n"
-	}
-	return strings.Repeat(" ", newline) + source[newline:]
 }
 
 func (s *State) tryBytecode(ctx context.Context, chunk *ast.Chunk) ([]value.Value, bool, error) {
@@ -1520,65 +1508,6 @@ func isLuaSpace(b byte) bool {
 	return b == ' ' || b == '\t' || b == '\n' || b == '\r' || b == '\f' || b == '\v'
 }
 
-func readFileFormat(handle *fileHandle, format value.Value) (value.Value, error) {
-	formatText := format.String()
-	if formatText == "nil" {
-		formatText = "*l"
-	}
-	switch formatText {
-	case "*a", "*all":
-		if handle.reader == nil {
-			handle.reader = bufio.NewReader(handle.file)
-		}
-		data, err := io.ReadAll(handle.reader)
-		if err != nil {
-			return value.Nil, err
-		}
-		if len(data) == 0 {
-			return value.Nil, nil
-		}
-		return value.String(string(data)), nil
-	case "*l", "*line":
-		if handle.reader == nil {
-			handle.reader = bufio.NewReader(handle.file)
-		}
-		line, err := handle.reader.ReadString('\n')
-		if err != nil && !errors.Is(err, io.EOF) {
-			return value.Nil, err
-		}
-		if len(line) == 0 && errors.Is(err, io.EOF) {
-			return value.Nil, nil
-		}
-		return value.String(strings.TrimRight(line, "\r\n")), nil
-	case "*n", "*number":
-		if handle.reader == nil {
-			handle.reader = bufio.NewReader(handle.file)
-		}
-		n, ok, err := readLuaNumber(handle.reader)
-		if err != nil {
-			return value.Nil, err
-		}
-		if !ok {
-			return value.Nil, nil
-		}
-		return value.Number(n), nil
-	default:
-		n, ok := value.ToNumber(format)
-		if !ok {
-			return value.Nil, fmt.Errorf("unsupported file:read format %s", formatText)
-		}
-		buf := make([]byte, int(n))
-		read, err := handle.file.Read(buf)
-		if err != nil && !errors.Is(err, io.EOF) {
-			return value.Nil, err
-		}
-		if read == 0 && errors.Is(err, io.EOF) {
-			return value.Nil, nil
-		}
-		return value.String(string(buf[:read])), nil
-	}
-}
-
 func (s *State) fileMethod(handle *fileHandle, name string) value.Value {
 	switch name {
 	case "read":
@@ -1586,22 +1515,62 @@ func (s *State) fileMethod(handle *fileHandle, name string) value.Value {
 			if handle.file == nil {
 				return nil, fmt.Errorf("attempt to use a closed file")
 			}
-			if len(args) <= 1 {
-				v, err := readFileFormat(handle, value.String("*l"))
+			format := args.String(1)
+			if format == "nil" {
+				format = "*l"
+			}
+			switch format {
+			case "*a":
+				if handle.reader == nil {
+					handle.reader = bufio.NewReader(handle.file)
+				}
+				data, err := io.ReadAll(handle.reader)
 				if err != nil {
 					return nil, err
 				}
-				return []value.Value{v}, nil
-			}
-			results := make([]value.Value, 0, len(args)-1)
-			for _, format := range args[1:] {
-				v, err := readFileFormat(handle, format)
+				if len(data) == 0 {
+					return []value.Value{value.Nil}, nil
+				}
+				return []value.Value{value.String(string(data))}, nil
+			case "*l":
+				if handle.reader == nil {
+					handle.reader = bufio.NewReader(handle.file)
+				}
+				line, err := handle.reader.ReadString('\n')
+				if err != nil && !errors.Is(err, io.EOF) {
+					return nil, err
+				}
+				if len(line) == 0 && errors.Is(err, io.EOF) {
+					return []value.Value{value.Nil}, nil
+				}
+				return []value.Value{value.String(strings.TrimRight(line, "\r\n"))}, nil
+			case "*n":
+				if handle.reader == nil {
+					handle.reader = bufio.NewReader(handle.file)
+				}
+				n, ok, err := readLuaNumber(handle.reader)
 				if err != nil {
 					return nil, err
 				}
-				results = append(results, v)
+				if !ok {
+					return []value.Value{value.Nil}, nil
+				}
+				return []value.Value{value.Number(n)}, nil
+			default:
+				n, ok := value.ToNumber(args.Get(1))
+				if !ok {
+					return nil, fmt.Errorf("unsupported file:read format %s", format)
+				}
+				buf := make([]byte, int(n))
+				read, err := handle.file.Read(buf)
+				if err != nil && !errors.Is(err, io.EOF) {
+					return nil, err
+				}
+				if read == 0 && errors.Is(err, io.EOF) {
+					return []value.Value{value.Nil}, nil
+				}
+				return []value.Value{value.String(string(buf[:read]))}, nil
 			}
-			return results, nil
 		}}
 	case "write":
 		return &goFunction{fn: func(ctx context.Context, args Args) (value.Value, error) {
@@ -1732,112 +1701,6 @@ func closeFileHandle(handle *fileHandle) error {
 	return nil
 }
 
-func luaDateTable(t time.Time) *value.Table {
-	table := value.NewTable()
-	table.Set(value.String("year"), value.Number(t.Year()))
-	table.Set(value.String("month"), value.Number(int(t.Month())))
-	table.Set(value.String("day"), value.Number(t.Day()))
-	table.Set(value.String("hour"), value.Number(t.Hour()))
-	table.Set(value.String("min"), value.Number(t.Minute()))
-	table.Set(value.String("sec"), value.Number(t.Second()))
-	table.Set(value.String("wday"), value.Number(int(t.Weekday())+1))
-	table.Set(value.String("yday"), value.Number(t.YearDay()))
-	table.Set(value.String("isdst"), value.Bool(isDST(t)))
-	return table
-}
-
-func luaDateTableInt(table *value.Table, name string, fallback int) int {
-	n, ok := value.ToNumber(table.Get(value.String(name)))
-	if !ok {
-		return fallback
-	}
-	return int(n)
-}
-
-func isDST(t time.Time) bool {
-	_, offset := t.Zone()
-	jan := time.Date(t.Year(), time.January, 1, 0, 0, 0, 0, t.Location())
-	_, janOffset := jan.Zone()
-	jul := time.Date(t.Year(), time.July, 1, 0, 0, 0, 0, t.Location())
-	_, julOffset := jul.Zone()
-	standard := janOffset
-	if julOffset < standard {
-		standard = julOffset
-	}
-	return offset != standard
-}
-
-func formatLuaDate(format string, t time.Time) string {
-	var out strings.Builder
-	for i := 0; i < len(format); i++ {
-		if format[i] != '%' || i == len(format)-1 {
-			out.WriteByte(format[i])
-			continue
-		}
-		i++
-		switch format[i] {
-		case '%':
-			out.WriteByte('%')
-		case 'a':
-			out.WriteString(t.Format("Mon"))
-		case 'A':
-			out.WriteString(t.Format("Monday"))
-		case 'b', 'h':
-			out.WriteString(t.Format("Jan"))
-		case 'B':
-			out.WriteString(t.Format("January"))
-		case 'c':
-			out.WriteString(t.Format("Mon Jan _2 15:04:05 2006"))
-		case 'd':
-			out.WriteString(t.Format("02"))
-		case 'H':
-			out.WriteString(t.Format("15"))
-		case 'I':
-			out.WriteString(t.Format("03"))
-		case 'j':
-			fmt.Fprintf(&out, "%03d", t.YearDay())
-		case 'm':
-			out.WriteString(t.Format("01"))
-		case 'M':
-			out.WriteString(t.Format("04"))
-		case 'p':
-			out.WriteString(t.Format("PM"))
-		case 'S':
-			out.WriteString(t.Format("05"))
-		case 'U':
-			fmt.Fprintf(&out, "%02d", luaWeekNumber(t, time.Sunday))
-		case 'w':
-			fmt.Fprintf(&out, "%d", int(t.Weekday()))
-		case 'W':
-			fmt.Fprintf(&out, "%02d", luaWeekNumber(t, time.Monday))
-		case 'x':
-			out.WriteString(t.Format("01/02/06"))
-		case 'X':
-			out.WriteString(t.Format("15:04:05"))
-		case 'y':
-			out.WriteString(t.Format("06"))
-		case 'Y':
-			out.WriteString(t.Format("2006"))
-		case 'Z':
-			out.WriteString(t.Format("MST"))
-		default:
-			out.WriteByte('%')
-			out.WriteByte(format[i])
-		}
-	}
-	return out.String()
-}
-
-func luaWeekNumber(t time.Time, first time.Weekday) int {
-	yearStart := time.Date(t.Year(), time.January, 1, 0, 0, 0, 0, t.Location())
-	offset := (int(first) - int(yearStart.Weekday()) + 7) % 7
-	firstWeekStart := yearStart.AddDate(0, 0, offset)
-	if t.Before(firstWeekStart) {
-		return 0
-	}
-	return int(t.Sub(firstWeekStart).Hours()/24)/7 + 1
-}
-
 func (s *State) openStdlib() {
 	defer s.installGlobalTable()
 
@@ -1911,10 +1774,6 @@ func (s *State) openStdlib() {
 			fn := args.Get(0)
 			values, err := s.callValueMulti(ctx, fn, []value.Value(args[1:]))
 			if err != nil {
-				var exitErr *ExitError
-				if errors.As(err, &exitErr) {
-					return nil, err
-				}
 				return []value.Value{value.Bool(false), value.String(err.Error())}, nil
 			}
 			return append([]value.Value{value.Bool(true)}, values...), nil
@@ -1924,10 +1783,6 @@ func (s *State) openStdlib() {
 			handler := args.Get(1)
 			values, err := s.callValueMulti(ctx, fn, nil)
 			if err != nil {
-				var exitErr *ExitError
-				if errors.As(err, &exitErr) {
-					return nil, err
-				}
 				handled, handlerErr := s.callValueMulti(ctx, handler, []value.Value{value.String(err.Error())})
 				if handlerErr != nil {
 					return []value.Value{value.Bool(false), value.String(handlerErr.Error())}, nil
@@ -1961,22 +1816,9 @@ func (s *State) openStdlib() {
 			if !ok {
 				return nil, fmt.Errorf("unpack expects table")
 			}
-			start := 1
-			if args.Get(1) != value.Nil {
-				start = int(args.Number(1))
-			}
-			end := t.Len()
-			if args.Get(2) != value.Nil {
-				end = int(args.Number(2))
-			}
-			if start > end {
-				return nil, nil
-			}
-			values := make([]value.Value, 0, end-start+1)
-			for i := start; i <= end; i++ {
-				values = append(values, t.Get(value.Number(i)))
-			}
-			return values, nil
+			start := int(args.Number(1))
+			end := int(args.Number(2))
+			return t.Values(start, end), nil
 		}})
 		s.global.set("loadstring", &multiGoFunction{fn: func(ctx context.Context, args Args) ([]value.Value, error) {
 			source := args.String(0)
@@ -2358,10 +2200,7 @@ func (s *State) openStdlib() {
 			if end > len(text) {
 				end = len(text)
 			}
-			if start > end {
-				return nil, nil
-			}
-			if start > len(text) {
+			if start > end || start > len(text) {
 				return []value.Value{value.Nil}, nil
 			}
 			out := make([]value.Value, 0, end-start+1)
@@ -2704,10 +2543,7 @@ func (s *State) openStdlib() {
 			if !ok {
 				return value.Nil, fmt.Errorf("table.concat expects table")
 			}
-			sep := ""
-			if args.Get(1) != value.Nil {
-				sep = args.String(1)
-			}
+			sep := args.String(1)
 			start := int(args.Number(2))
 			if start <= 0 {
 				start = 1
@@ -2779,43 +2615,9 @@ func (s *State) openStdlib() {
 	}
 	if s.stdlib.OS {
 		osTable := value.NewTable()
-		osTable.Set(value.String("time"), &goFunction{fn: func(ctx context.Context, args Args) (value.Value, error) {
-			if args.Get(0) == value.Nil {
-				return value.Number(time.Now().Unix()), nil
-			}
-			table, ok := args.Get(0).(*value.Table)
-			if !ok {
-				return value.Nil, fmt.Errorf("os.time expects table")
-			}
-			year := luaDateTableInt(table, "year", 0)
-			month := luaDateTableInt(table, "month", 0)
-			day := luaDateTableInt(table, "day", 0)
-			if year == 0 || month == 0 || day == 0 {
-				return value.Nil, fmt.Errorf("os.time table requires year, month, and day")
-			}
-			hour := luaDateTableInt(table, "hour", 12)
-			minute := luaDateTableInt(table, "min", 0)
-			second := luaDateTableInt(table, "sec", 0)
-			t := time.Date(year, time.Month(month), day, hour, minute, second, 0, time.Local)
-			return value.Number(t.Unix()), nil
-		}})
+		osTable.Set(value.String("time"), &goFunction{fn: func(ctx context.Context, args Args) (value.Value, error) { return value.Number(time.Now().Unix()), nil }})
 		osTable.Set(value.String("date"), &goFunction{fn: func(ctx context.Context, args Args) (value.Value, error) {
-			format := args.String(0)
-			if format == "nil" {
-				format = "%c"
-			}
-			t := time.Now()
-			if args.Get(1) != value.Nil {
-				t = time.Unix(int64(args.Number(1)), 0)
-			}
-			if strings.HasPrefix(format, "!") {
-				t = t.UTC()
-				format = strings.TrimPrefix(format, "!")
-			}
-			if format == "*t" {
-				return luaDateTable(t), nil
-			}
-			return value.String(formatLuaDate(format, t)), nil
+			return value.String(time.Now().Format(time.RFC3339)), nil
 		}})
 		osTable.Set(value.String("clock"), &goFunction{fn: func(ctx context.Context, args Args) (value.Value, error) {
 			return value.Number(float64(time.Now().UnixNano()) / float64(time.Second)), nil
@@ -2877,7 +2679,7 @@ func (s *State) openStdlib() {
 		}})
 		osTable.Set(value.String("exit"), &goFunction{fn: func(ctx context.Context, args Args) (value.Value, error) {
 			code := int(args.Number(0))
-			return value.Nil, &ExitError{Code: code}
+			return value.Nil, fmt.Errorf("os.exit(%d)", code)
 		}})
 		s.SetGlobal("os", osTable)
 	}
@@ -2920,9 +2722,6 @@ func (s *State) openStdlib() {
 			return []value.Value{handle}, nil
 		}})
 		ioTable.Set(value.String("lines"), &goFunction{fn: func(ctx context.Context, args Args) (value.Value, error) {
-			if args.Get(0) == value.Nil {
-				return fileLineIterator(s.input, false), nil
-			}
 			path := args.String(0)
 			file, err := os.OpenFile(path, os.O_RDONLY, 0)
 			if err != nil {
@@ -2930,8 +2729,9 @@ func (s *State) openStdlib() {
 			}
 			return fileLineIterator(&fileHandle{file: file, reader: bufio.NewReader(file)}, true), nil
 		}})
-		ioTable.Set(value.String("read"), &multiGoFunction{fn: func(ctx context.Context, args Args) ([]value.Value, error) {
-			return s.fileMethod(s.input, "read").(*multiGoFunction).fn(ctx, append(Args{value.Nil}, args...))
+		ioTable.Set(value.String("read"), &goFunction{fn: func(ctx context.Context, args Args) (value.Value, error) {
+			values, err := s.fileMethod(s.input, "read").(*multiGoFunction).fn(ctx, append(Args{value.Nil}, args...))
+			return first(values), err
 		}})
 		ioTable.Set(value.String("write"), &goFunction{fn: func(ctx context.Context, args Args) (value.Value, error) {
 			return s.fileMethod(s.output, "write").(*goFunction).fn(ctx, append(Args{s.output}, args...))
@@ -3130,13 +2930,10 @@ func (s *State) openStdlib() {
 		s.Register("require", func(ctx context.Context, args Args) (value.Value, error) {
 			name := args.String(0)
 			moduleKey := value.String(name)
-			if cached := loaded.RawGet(moduleKey); value.IsTruthy(cached) {
+			if cached := loaded.RawGet(moduleKey); cached != value.Nil {
 				return cached, nil
 			}
 			activeLoaders, ok := pkg.Get(value.String("loaders")).(*value.Table)
-			if searchers, searchersOK := pkg.Get(value.String("searchers")).(*value.Table); searchersOK && activeLoaders == loaders {
-				activeLoaders = searchers
-			}
 			if !ok {
 				return value.Nil, fmt.Errorf("package.loaders must be table")
 			}
@@ -3502,9 +3299,7 @@ func isLuaFormatVerb(ch byte) bool {
 func luaFormatArg(arg value.Value, verb byte) any {
 	if n, ok := arg.(value.Number); ok {
 		switch verb {
-		case 'u':
-			return uint32(int64(n))
-		case 'c', 'd', 'i', 'o', 'x', 'X':
+		case 'c', 'd', 'i', 'o', 'u', 'x', 'X':
 			return int64(n)
 		default:
 			if float64(n) == math.Trunc(float64(n)) {
