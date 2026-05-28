@@ -42,7 +42,7 @@ The default profile opens these modules:
   `package.cpath`, `package.config`, `package.seeall`, `module`,
   unsupported `package.loadlib`
   (`require` accepts custom Lua 5.1 `package.loaders` and the compatible
-  `package.searchers` alias)
+  `package.searchers` alias; `package.loaded[name] = false` forces reload)
 - `debug`: `debug.traceback`, `debug.getinfo`, `debug.getmetatable`,
   `debug.setmetatable`, `debug.getregistry`, `debug.getfenv`,
   `debug.setfenv`, `debug.getupvalue`, `debug.setupvalue`,

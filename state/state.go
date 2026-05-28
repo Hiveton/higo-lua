@@ -3111,7 +3111,7 @@ func (s *State) openStdlib() {
 		s.Register("require", func(ctx context.Context, args Args) (value.Value, error) {
 			name := args.String(0)
 			moduleKey := value.String(name)
-			if cached := loaded.RawGet(moduleKey); cached != value.Nil {
+			if cached := loaded.RawGet(moduleKey); value.IsTruthy(cached) {
 				return cached, nil
 			}
 			activeLoaders, ok := pkg.Get(value.String("loaders")).(*value.Table)

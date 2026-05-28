@@ -2599,6 +2599,29 @@ result = first.value .. ":" .. second.value .. ":" .. tostring(package.loaded.de
 	}
 }
 
+func TestRequireReloadsWhenPackageLoadedIsFalse(t *testing.T) {
+	st := state.New()
+	defer st.Close()
+
+	if err := st.DoString(context.Background(), `
+local load_count = 0
+package.preload.demo_false = function(name)
+  load_count = load_count + 1
+  return {count = load_count, name = name}
+end
+local first = require("demo_false")
+package.loaded.demo_false = false
+local second = require("demo_false")
+result = tostring(first == second) .. ":" .. first.count .. ":" .. second.count .. ":" .. second.name
+`); err != nil {
+		t.Fatalf("DoString() error = %v", err)
+	}
+	got, _ := st.GetGlobal("result")
+	if got.String() != "false:1:2:demo_false" {
+		t.Fatalf("result = %q, want require to reload when package.loaded entry is false", got.String())
+	}
+}
+
 func TestLua51PackageConfigAndCPath(t *testing.T) {
 	st := state.New()
 	defer st.Close()
