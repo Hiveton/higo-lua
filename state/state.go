@@ -2644,7 +2644,24 @@ func (s *State) openStdlib() {
 		osTable := value.NewTable()
 		osTable.Set(value.String("time"), &goFunction{fn: func(ctx context.Context, args Args) (value.Value, error) { return value.Number(time.Now().Unix()), nil }})
 		osTable.Set(value.String("date"), &goFunction{fn: func(ctx context.Context, args Args) (value.Value, error) {
-			return value.String(time.Now().Format(time.RFC3339)), nil
+			format := args.String(0)
+			if args.Get(0) == value.Nil {
+				format = "%c"
+			}
+			timestamp := time.Now()
+			if args.Get(1) != value.Nil {
+				timestamp = time.Unix(int64(args.Number(1)), 0)
+			}
+			if strings.HasPrefix(format, "!") {
+				timestamp = timestamp.UTC()
+				format = strings.TrimPrefix(format, "!")
+			} else {
+				timestamp = timestamp.Local()
+			}
+			if format == "*t" {
+				return luaDateTable(timestamp), nil
+			}
+			return value.String(luaDateFormat(format, timestamp)), nil
 		}})
 		osTable.Set(value.String("clock"), &goFunction{fn: func(ctx context.Context, args Args) (value.Value, error) {
 			return value.Number(float64(time.Now().UnixNano()) / float64(time.Second)), nil
@@ -3379,6 +3396,55 @@ func luaStringStart(source string, start int) int {
 		start = len(source) + 1
 	}
 	return start - 1
+}
+
+func luaDateTable(t time.Time) *value.Table {
+	tab := value.NewTable()
+	tab.Set(value.String("year"), value.Number(t.Year()))
+	tab.Set(value.String("month"), value.Number(int(t.Month())))
+	tab.Set(value.String("day"), value.Number(t.Day()))
+	tab.Set(value.String("hour"), value.Number(t.Hour()))
+	tab.Set(value.String("min"), value.Number(t.Minute()))
+	tab.Set(value.String("sec"), value.Number(t.Second()))
+	tab.Set(value.String("wday"), value.Number(int(t.Weekday())+1))
+	tab.Set(value.String("yday"), value.Number(t.YearDay()))
+	tab.Set(value.String("isdst"), value.Bool(false))
+	return tab
+}
+
+func luaDateFormat(format string, t time.Time) string {
+	var b strings.Builder
+	for i := 0; i < len(format); i++ {
+		if format[i] != '%' || i == len(format)-1 {
+			b.WriteByte(format[i])
+			continue
+		}
+		i++
+		switch format[i] {
+		case '%':
+			b.WriteByte('%')
+		case 'Y':
+			b.WriteString(fmt.Sprintf("%04d", t.Year()))
+		case 'y':
+			b.WriteString(fmt.Sprintf("%02d", t.Year()%100))
+		case 'm':
+			b.WriteString(fmt.Sprintf("%02d", int(t.Month())))
+		case 'd':
+			b.WriteString(fmt.Sprintf("%02d", t.Day()))
+		case 'H':
+			b.WriteString(fmt.Sprintf("%02d", t.Hour()))
+		case 'M':
+			b.WriteString(fmt.Sprintf("%02d", t.Minute()))
+		case 'S':
+			b.WriteString(fmt.Sprintf("%02d", t.Second()))
+		case 'c':
+			b.WriteString(t.Format("Mon Jan _2 15:04:05 2006"))
+		default:
+			b.WriteByte('%')
+			b.WriteByte(format[i])
+		}
+	}
+	return b.String()
 }
 
 func parseBalancedPattern(pattern string) (byte, byte, bool) {
