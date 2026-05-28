@@ -35,7 +35,8 @@ The default profile opens these modules:
   `flush`, `close`, `lines`, `seek`, and `setvbuf`
   (`file:read` supports `*l`, `*a`, `*n`, and byte counts)
 - `os`: `os.time` with local-time table input, `os.date` with explicit
-  timestamps, UTC `!`, `*t`, and common numeric format specifiers, `os.clock`,
+  timestamps, UTC `!`, `*t`, weekday/day-of-year, and common numeric format
+  specifiers, `os.clock`,
   `os.difftime`, `os.getenv`,
   `os.tmpname`, `os.rename`, `os.remove`, `os.execute`, `os.setlocale`,
   `os.exit`

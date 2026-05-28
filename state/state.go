@@ -3459,6 +3459,10 @@ func luaDateFormat(format string, t time.Time) string {
 			b.WriteString(fmt.Sprintf("%02d", t.Minute()))
 		case 'S':
 			b.WriteString(fmt.Sprintf("%02d", t.Second()))
+		case 'w':
+			b.WriteString(strconv.Itoa(int(t.Weekday())))
+		case 'j':
+			b.WriteString(fmt.Sprintf("%03d", t.YearDay()))
 		case 'c':
 			b.WriteString(t.Format("Mon Jan _2 15:04:05 2006"))
 		default:

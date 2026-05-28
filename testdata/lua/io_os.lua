@@ -46,8 +46,9 @@ if type(os.clock()) ~= "number" then
 end
 
 local date_text = os.date("!%Y-%m-%d %H:%M:%S", 0)
+local date_ordinal = os.date("!%w:%j", 0)
 local date_table = os.date("!*t", 0)
-if date_text ~= "1970-01-01 00:00:00" or date_table.year ~= 1970 or date_table.month ~= 1 or date_table.day ~= 1 or date_table.hour ~= 0 or date_table.min ~= 0 or date_table.sec ~= 0 or date_table.isdst ~= false then
+if date_text ~= "1970-01-01 00:00:00" or date_ordinal ~= "4:001" or date_table.year ~= 1970 or date_table.month ~= 1 or date_table.day ~= 1 or date_table.hour ~= 0 or date_table.min ~= 0 or date_table.sec ~= 0 or date_table.isdst ~= false then
   error("os.date explicit time mismatch")
 end
 
