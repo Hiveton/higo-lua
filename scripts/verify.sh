@@ -19,6 +19,18 @@ if [[ "$stdin_output" != "-:1:1:cliarg" ]]; then
 	echo "stdin CLI output = $stdin_output, want -:1:1:cliarg" >&2
 	exit 1
 fi
+runner_bin="$(mktemp "$ROOT/higoluarun.XXXXXX")"
+go build -o "$runner_bin" ./cmd/higoluarun
+"$runner_bin" -e 'os.exit(0)'
+set +e
+"$runner_bin" -e 'os.exit(7)' >/tmp/higoluarun-exit.out 2>&1
+exit_code=$?
+set -e
+rm -f /tmp/higoluarun-exit.out "$runner_bin"
+if [[ "$exit_code" -ne 7 ]]; then
+	echo "os.exit CLI code = $exit_code, want 7" >&2
+	exit 1
+fi
 go run ./cmd/higoluarun test ./testdata/lua
 
 tmp="$(mktemp -d)"

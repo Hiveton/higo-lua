@@ -139,6 +139,25 @@ func TestHigoLuaRunArgTableReportsArgumentCount(t *testing.T) {
 	}
 }
 
+func TestHigoLuaRunHonorsOsExitCode(t *testing.T) {
+	bin := buildHigoLuaRun(t)
+
+	okCmd := exec.Command(bin, "-e", `os.exit(0)`)
+	if output, err := okCmd.CombinedOutput(); err != nil {
+		t.Fatalf("higoluarun os.exit(0) failed: %v\n%s", err, output)
+	}
+
+	failCmd := exec.Command(bin, "-e", `os.exit(7)`)
+	output, err := failCmd.CombinedOutput()
+	exitErr, ok := err.(*exec.ExitError)
+	if !ok {
+		t.Fatalf("higoluarun os.exit(7) error = %T %v, want exit error\n%s", err, err, output)
+	}
+	if exitErr.ExitCode() != 7 {
+		t.Fatalf("exit code = %d, want 7\n%s", exitErr.ExitCode(), output)
+	}
+}
+
 func TestHigoLuaRunTestRunsDirectoryScripts(t *testing.T) {
 	dir := t.TempDir()
 	if err := os.WriteFile(filepath.Join(dir, "pass.lua"), []byte(`
@@ -174,4 +193,15 @@ func TestHigoLuaRunTestReportsFailingScripts(t *testing.T) {
 	if !strings.Contains(got, "FAIL bad.lua") || !strings.Contains(got, "boom") {
 		t.Fatalf("output = %q, want failing file and error message", got)
 	}
+}
+
+func buildHigoLuaRun(t *testing.T) string {
+	t.Helper()
+	bin := filepath.Join(t.TempDir(), "higoluarun")
+	cmd := exec.Command("go", "build", "-o", bin, "./cmd/higoluarun")
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("go build higoluarun failed: %v\n%s", err, output)
+	}
+	return bin
 }

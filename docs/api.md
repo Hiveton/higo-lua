@@ -95,6 +95,7 @@ APIs return stable error types that work with `errors.As`:
 - `higolua.RuntimeError` / `state.RuntimeError`
 - `higolua.BridgeError` / `state.BridgeError`
 - `higolua.ContextError` / `state.ContextError`
+- `higolua.ExitError` / `state.ExitError`
 
 The error string remains the underlying Lua-facing message; `Unwrap` exposes the
 original error for callers that need lower-level details.
@@ -103,3 +104,5 @@ original error for callers that need lower-level details.
 `Chunk`, `Line`, `Column`, and a basic Lua function call stack. `BridgeError`
 keeps the registered Go function name and, when available from the statement
 boundary, the Lua source position that triggered it.
+`ExitError` carries the `os.exit` status code so command-line hosts can exit
+with the Lua script's requested status.

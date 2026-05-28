@@ -2850,7 +2850,7 @@ func (s *State) openStdlib() {
 		}})
 		osTable.Set(value.String("exit"), &goFunction{fn: func(ctx context.Context, args Args) (value.Value, error) {
 			code := int(args.Number(0))
-			return value.Nil, fmt.Errorf("os.exit(%d)", code)
+			return value.Nil, &ExitError{Code: code}
 		}})
 		s.SetGlobal("os", osTable)
 	}
