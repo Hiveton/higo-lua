@@ -1,6 +1,6 @@
 package ast
 
-import "github.com/hiveton/higolua/internal/lexer"
+import "github.com/Hiveton/higo-lua/internal/lexer"
 
 type Chunk struct {
 	Block []Stmt

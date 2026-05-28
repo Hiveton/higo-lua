@@ -11,10 +11,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hiveton/higolua"
-	"github.com/hiveton/higolua/state"
-	"github.com/hiveton/higolua/stdlib"
-	"github.com/hiveton/higolua/value"
+	"github.com/Hiveton/higo-lua"
+	"github.com/Hiveton/higo-lua/state"
+	"github.com/Hiveton/higo-lua/stdlib"
+	"github.com/Hiveton/higo-lua/value"
 )
 
 func TestRuntimeDoStringReturnsExpression(t *testing.T) {

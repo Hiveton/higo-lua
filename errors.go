@@ -1,6 +1,6 @@
 package higolua
 
-import "github.com/hiveton/higolua/state"
+import "github.com/Hiveton/higo-lua/state"
 
 type SyntaxError = state.SyntaxError
 type RuntimeError = state.RuntimeError

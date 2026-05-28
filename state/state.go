@@ -18,13 +18,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hiveton/higolua/internal/ast"
-	"github.com/hiveton/higolua/internal/bytecode"
-	"github.com/hiveton/higolua/internal/lexer"
-	"github.com/hiveton/higolua/internal/parser"
-	"github.com/hiveton/higolua/internal/vm"
-	"github.com/hiveton/higolua/stdlib"
-	"github.com/hiveton/higolua/value"
+	"github.com/Hiveton/higo-lua/internal/ast"
+	"github.com/Hiveton/higo-lua/internal/bytecode"
+	"github.com/Hiveton/higo-lua/internal/lexer"
+	"github.com/Hiveton/higo-lua/internal/parser"
+	"github.com/Hiveton/higo-lua/internal/vm"
+	"github.com/Hiveton/higo-lua/stdlib"
+	"github.com/Hiveton/higo-lua/value"
 )
 
 type GoFunc func(context.Context, Args) (value.Value, error)

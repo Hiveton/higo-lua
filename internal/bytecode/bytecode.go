@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/hiveton/higolua/internal/ast"
-	"github.com/hiveton/higolua/internal/lexer"
-	"github.com/hiveton/higolua/value"
+	"github.com/Hiveton/higo-lua/internal/ast"
+	"github.com/Hiveton/higo-lua/internal/lexer"
+	"github.com/Hiveton/higo-lua/value"
 )
 
 type Opcode byte

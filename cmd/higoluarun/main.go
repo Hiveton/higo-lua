@@ -9,8 +9,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/hiveton/higolua/state"
-	"github.com/hiveton/higolua/value"
+	"github.com/Hiveton/higo-lua/state"
+	"github.com/Hiveton/higo-lua/value"
 )
 
 func main() {
