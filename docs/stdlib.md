@@ -12,8 +12,8 @@ The default profile opens these modules:
   reader functions; `setmetatable`/`getmetatable` honor `__metatable`;
   `getfenv`/`setfenv` support functions and Lua stack levels)
 - `table`: `table.insert`, `table.remove`, `table.sort`, `table.concat`
-  with Lua 5.1 default separator, raw integer-key access, and explicit range
-  validation,
+  with Lua 5.1 sparse insert/remove boundary behavior, default concat
+  separator, raw integer-key access, and explicit concat range validation,
   `table.unpack`, `table.getn`, `table.maxn`, `table.foreach`,
   `table.foreachi`
 - `string`: `string.len`, `string.upper`, `string.lower`, `string.byte`,

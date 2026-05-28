@@ -113,8 +113,14 @@ func (t *Table) Insert(pos int, v Value) {
 		v = Nil
 	}
 	limit := t.Len() + 1
-	if pos <= 0 || pos > limit {
+	if pos <= 0 {
 		pos = limit
+	}
+	if pos > limit {
+		for len(t.array) < pos-1 {
+			t.array = append(t.array, Nil)
+		}
+		limit = pos
 	}
 	i := pos - 1
 	if len(t.array) > limit-1 {

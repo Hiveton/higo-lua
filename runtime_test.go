@@ -1534,68 +1534,65 @@ result = defaultSep .. ":" .. tostring(okBool) .. ":" .. type(errBool) .. ":" ..
 	}
 }
 
-func TestLua51TableRemoveRejectsExplicitZeroPosition(t *testing.T) {
+func TestLua51TableRemoveIgnoresExplicitZeroPosition(t *testing.T) {
 	st := state.New()
 	defer st.Close()
 
 	if err := st.DoString(context.Background(), `
 local t = {"a", "b"}
-local ok, err = pcall(function()
+local ok, removedZero = pcall(function()
   return table.remove(t, 0)
 end)
 local removed = table.remove(t)
-result = tostring(ok) .. ":" .. type(err) .. ":" .. removed .. ":" .. #t
+result = tostring(ok) .. ":" .. tostring(removedZero) .. ":" .. removed .. ":" .. #t
 `); err != nil {
 		t.Fatalf("DoString() error = %v", err)
 	}
 	got, _ := st.GetGlobal("result")
-	if got.String() != "false:string:b:1" {
-		t.Fatalf("result = %q, want explicit zero rejected and omitted position removes last", got.String())
+	if got.String() != "true:nil:b:1" {
+		t.Fatalf("result = %q, want explicit zero ignored and omitted position removes last", got.String())
 	}
 }
 
-func TestLua51TableRemoveRejectsOutOfRangeExplicitPosition(t *testing.T) {
+func TestLua51TableRemoveIgnoresOutOfRangeExplicitPosition(t *testing.T) {
 	st := state.New()
 	defer st.Close()
 
 	if err := st.DoString(context.Background(), `
 local t = {"a", "b"}
-local okFar, errFar = pcall(function()
+local okFar, removedFar = pcall(function()
   return table.remove(t, 3)
 end)
-local okEmpty, errEmpty = pcall(function()
+local okEmpty, removedEmpty = pcall(function()
   return table.remove({}, 1)
 end)
-result = tostring(okFar) .. ":" .. type(errFar) .. ":" .. tostring(okEmpty) .. ":" .. type(errEmpty) .. ":" .. table.concat(t, "")
+result = tostring(okFar) .. ":" .. tostring(removedFar) .. ":" .. tostring(okEmpty) .. ":" .. tostring(removedEmpty) .. ":" .. table.concat(t, "")
 `); err != nil {
 		t.Fatalf("DoString() error = %v", err)
 	}
 	got, _ := st.GetGlobal("result")
-	if got.String() != "false:string:false:string:ab" {
-		t.Fatalf("result = %q, want out-of-range explicit remove positions rejected", got.String())
+	if got.String() != "true:nil:true:nil:ab" {
+		t.Fatalf("result = %q, want out-of-range explicit remove positions ignored", got.String())
 	}
 }
 
-func TestLua51TableInsertRejectsInvalidExplicitPosition(t *testing.T) {
+func TestLua51TableInsertAllowsSparseExplicitPosition(t *testing.T) {
 	st := state.New()
 	defer st.Close()
 
 	if err := st.DoString(context.Background(), `
 local t = {"a", "b"}
-local okZero, errZero = pcall(function()
-  table.insert(t, 0, "bad")
-end)
 local okTooFar, errTooFar = pcall(function()
-  table.insert(t, 5, "bad")
+  table.insert(t, 5, "far")
 end)
 table.insert(t, "c")
-result = tostring(okZero) .. ":" .. type(errZero) .. ":" .. tostring(okTooFar) .. ":" .. type(errTooFar) .. ":" .. table.concat(t, "")
+result = tostring(okTooFar) .. ":" .. tostring(errTooFar) .. ":" .. tostring(t[3]) .. ":" .. tostring(t[4]) .. ":" .. t[5] .. ":" .. t[6]
 `); err != nil {
 		t.Fatalf("DoString() error = %v", err)
 	}
 	got, _ := st.GetGlobal("result")
-	if got.String() != "false:string:false:string:abc" {
-		t.Fatalf("result = %q, want invalid explicit insert positions rejected and append preserved", got.String())
+	if got.String() != "true:nil:nil:nil:far:c" {
+		t.Fatalf("result = %q, want sparse explicit insert position and append preserved", got.String())
 	}
 }
 

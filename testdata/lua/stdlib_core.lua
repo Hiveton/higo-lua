@@ -87,18 +87,15 @@ end)
 local remove_empty_explicit_ok = pcall(function()
   return table.remove({}, 1)
 end)
-if remove_ok or remove_far_ok or remove_empty_explicit_ok or table.remove(remove_values) ~= "b" then
+if not remove_ok or not remove_far_ok or not remove_empty_explicit_ok or table.remove(remove_values) ~= "b" then
   error("table.remove position compatibility mismatch")
 end
 local insert_values = {"a", "b"}
-local insert_zero_ok = pcall(function()
-  table.insert(insert_values, 0, "bad")
-end)
 local insert_far_ok = pcall(function()
-  table.insert(insert_values, 5, "bad")
+  table.insert(insert_values, 5, "far")
 end)
 table.insert(insert_values, "c")
-if insert_zero_ok or insert_far_ok or table.concat(insert_values, "") ~= "abc" then
+if not insert_far_ok or insert_values[3] ~= nil or insert_values[4] ~= nil or insert_values[5] ~= "far" or insert_values[6] ~= "c" then
   error("table.insert position compatibility mismatch")
 end
 

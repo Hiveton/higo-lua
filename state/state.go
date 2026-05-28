@@ -2506,7 +2506,7 @@ func (s *State) openStdlib() {
 			}
 			if len(args) >= 3 {
 				pos := int(args.Number(1))
-				if pos < 1 || pos > t.Len()+1 {
+				if pos < 1 {
 					return value.Nil, fmt.Errorf("bad argument #2 to table.insert")
 				}
 				t.Insert(pos, args.Get(2))
@@ -2524,7 +2524,7 @@ func (s *State) openStdlib() {
 			if args.Get(1) != value.Nil {
 				pos = int(args.Number(1))
 				if pos < 1 || pos > t.Len() {
-					return value.Nil, fmt.Errorf("bad argument #2 to table.remove")
+					return value.Nil, nil
 				}
 			}
 			return t.Remove(pos), nil
