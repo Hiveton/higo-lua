@@ -46,6 +46,9 @@ table.sort(values)
 if table.concat(values, ",") ~= "1,2,3" then
   error("table.sort/concat mismatch")
 end
+if table.concat({"a", "b"}) ~= "ab" then
+  error("table.concat default separator mismatch")
+end
 local maxn_values = {}
 maxn_values[5] = "present"
 local maxn_before = table.maxn(maxn_values)

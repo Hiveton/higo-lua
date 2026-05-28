@@ -2704,7 +2704,10 @@ func (s *State) openStdlib() {
 			if !ok {
 				return value.Nil, fmt.Errorf("table.concat expects table")
 			}
-			sep := args.String(1)
+			sep := ""
+			if args.Get(1) != value.Nil {
+				sep = args.String(1)
+			}
 			start := int(args.Number(2))
 			if start <= 0 {
 				start = 1

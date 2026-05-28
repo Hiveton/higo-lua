@@ -1486,18 +1486,19 @@ func TestLua51TableConcatRejectsNonStringNumberElements(t *testing.T) {
 	defer st.Close()
 
 	if err := st.DoString(context.Background(), `
+local defaultSep = table.concat({"a", "b"})
 local okBool, errBool = pcall(function()
   return table.concat({"a", true}, "")
 end)
 local okTable, errTable = pcall(function()
   return table.concat({"a", {}}, "")
 end)
-result = tostring(okBool) .. ":" .. type(errBool) .. ":" .. tostring(okTable) .. ":" .. type(errTable)
+result = defaultSep .. ":" .. tostring(okBool) .. ":" .. type(errBool) .. ":" .. tostring(okTable) .. ":" .. type(errTable)
 `); err != nil {
 		t.Fatalf("DoString() error = %v", err)
 	}
 	got, _ := st.GetGlobal("result")
-	if got.String() != "false:string:false:string" {
+	if got.String() != "ab:false:string:false:string" {
 		t.Fatalf("result = %q, want concat to reject non-string/number elements", got.String())
 	}
 }

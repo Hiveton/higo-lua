@@ -15,6 +15,7 @@ The default profile opens these modules:
 - `table`: `table.insert`, `table.remove`, `table.sort`, `table.concat`,
   `table.unpack`, `table.getn`, `table.maxn`, `table.foreach`,
   `table.foreachi`
+  (`table.concat` defaults to an empty separator)
 - `string`: `string.len`, `string.upper`, `string.lower`, `string.byte`,
   `string.char`, `string.reverse`, `string.sub`, `string.rep`,
   `string.find`, `string.match`, `string.gmatch`, `string.gsub`,
