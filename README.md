@@ -11,6 +11,16 @@ result, err := rt.DoString(context.Background(), `return 1 + 2 * 3`)
 Run the library checks:
 
 ```bash
+scripts/verify.sh
+```
+
+The verification script runs the full package test suite, race tests, CLI Lua
+script execution, directory-based Lua compatibility scripts, stdin execution,
+and an external Go module smoke test that imports `github.com/Hiveton/higo-lua`.
+
+Individual checks:
+
+```bash
 go test ./...
 go test -race ./...
 go run ./cmd/higoluarun test ./testdata/lua
