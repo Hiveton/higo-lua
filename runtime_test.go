@@ -1294,18 +1294,21 @@ func TestLua51TableRejectsNilKeysOnWrite(t *testing.T) {
 
 	if err := st.DoString(context.Background(), `
 local t = {}
+local rawget_ok, rawget_err = pcall(function()
+  return rawget(t, nil)
+end)
 local assign_ok, assign_err = pcall(function()
   t[nil] = "bad"
 end)
 local rawset_ok, rawset_err = pcall(function()
   rawset(t, nil, "bad")
 end)
-result = tostring(assign_ok) .. ":" .. type(assign_err) .. ":" .. tostring(rawset_ok) .. ":" .. type(rawset_err) .. ":" .. tostring(next(t))
+result = tostring(rawget_ok) .. ":" .. type(rawget_err) .. ":" .. tostring(assign_ok) .. ":" .. type(assign_err) .. ":" .. tostring(rawset_ok) .. ":" .. type(rawset_err) .. ":" .. tostring(next(t))
 `); err != nil {
 		t.Fatalf("DoString() error = %v", err)
 	}
 	got, _ := st.GetGlobal("result")
-	if got.String() != "false:string:false:string:nil" {
+	if got.String() != "false:string:false:string:false:string:nil" {
 		t.Fatalf("result = %q, want nil table writes rejected", got.String())
 	}
 }

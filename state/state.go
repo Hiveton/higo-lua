@@ -2016,7 +2016,11 @@ func (s *State) openStdlib() {
 			if !ok {
 				return value.Nil, fmt.Errorf("rawget expects table")
 			}
-			return t.RawGet(args.Get(1)), nil
+			key := args.Get(1)
+			if key == value.Nil {
+				return value.Nil, fmt.Errorf("table index is nil")
+			}
+			return t.RawGet(key), nil
 		})
 		s.Register("rawset", func(ctx context.Context, args Args) (value.Value, error) {
 			t, ok := args.Get(0).(*value.Table)

@@ -150,6 +150,12 @@ end)
 if foreachi_seen ~= "1:a;2:nil;3:c;" then
   error("table.foreachi raw access mismatch")
 end
+local rawget_nil_ok = pcall(function()
+  return rawget({}, nil)
+end)
+if rawget_nil_ok then
+  error("rawget nil key mismatch")
+end
 
 local n = math.max(1, 9, 3) + math.min(8, 4)
 if n ~= 13 then
