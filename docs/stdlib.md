@@ -36,7 +36,7 @@ The default profile opens these modules:
   (`file:read` supports `*l`, `*a`, `*n`, and byte counts)
 - `os`: `os.time` with local-time table input, `os.date` with explicit
   timestamps, UTC `!`, `*t`, weekday/month names, weekday/day-of-year, and
-  common numeric format specifiers, `os.clock`,
+  12-hour/AM-PM plus common numeric format specifiers, `os.clock`,
   `os.difftime`, `os.getenv`,
   `os.tmpname`, `os.rename`, `os.remove`, `os.execute`, `os.setlocale`,
   `os.exit`

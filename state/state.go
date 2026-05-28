@@ -3463,8 +3463,20 @@ func luaDateFormat(format string, t time.Time) string {
 			b.WriteString(fmt.Sprintf("%02d", t.Day()))
 		case 'H':
 			b.WriteString(fmt.Sprintf("%02d", t.Hour()))
+		case 'I':
+			hour := t.Hour() % 12
+			if hour == 0 {
+				hour = 12
+			}
+			b.WriteString(fmt.Sprintf("%02d", hour))
 		case 'M':
 			b.WriteString(fmt.Sprintf("%02d", t.Minute()))
+		case 'p':
+			if t.Hour() < 12 {
+				b.WriteString("AM")
+			} else {
+				b.WriteString("PM")
+			}
 		case 'S':
 			b.WriteString(fmt.Sprintf("%02d", t.Second()))
 		case 'w':
