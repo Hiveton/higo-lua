@@ -2247,12 +2247,12 @@ func (s *State) openStdlib() {
 		str.Set(value.String("sub"), &goFunction{fn: func(ctx context.Context, args Args) (value.Value, error) {
 			text := args.String(0)
 			start := int(args.Number(1))
-			end := int(args.Number(2))
+			end := len(text)
+			if args.Get(2) != value.Nil {
+				end = int(args.Number(2))
+			}
 			if start < 0 {
 				start = len(text) + start + 1
-			}
-			if end == 0 {
-				end = len(text)
 			}
 			if end < 0 {
 				end = len(text) + end + 1

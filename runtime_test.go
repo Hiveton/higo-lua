@@ -1716,6 +1716,24 @@ result = countPastEnd .. ":" .. countEmptyRange .. ":" .. tostring(first)
 	}
 }
 
+func TestLua51StringSubDistinguishesExplicitZeroEnd(t *testing.T) {
+	st := state.New()
+	defer st.Close()
+
+	if err := st.DoString(context.Background(), `
+local omittedEnd = string.sub("abc", 2)
+local zeroEnd = string.sub("abc", 1, 0)
+local negativeEnd = string.sub("abc", 1, -1)
+result = omittedEnd .. ":" .. zeroEnd .. ":" .. negativeEnd
+`); err != nil {
+		t.Fatalf("DoString() error = %v", err)
+	}
+	got, _ := st.GetGlobal("result")
+	if got.String() != "bc::abc" {
+		t.Fatalf("result = %q, want string.sub explicit zero end to be empty", got.String())
+	}
+}
+
 func TestLua51StringPatternMatchFindAndGsub(t *testing.T) {
 	st := state.New()
 	defer st.Close()

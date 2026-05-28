@@ -18,7 +18,8 @@ The default profile opens these modules:
   `table.foreach`, `table.foreachi` with raw array reads
 - `string`: `string.len`, `string.upper`, `string.lower`, `string.byte`
   with zero results for empty ranges,
-  `string.char`, `string.reverse`, `string.sub`, `string.rep`,
+  `string.char`, `string.reverse`, `string.sub` with Lua 5.1 end-index
+  defaults, `string.rep`,
   `string.find`, `string.match`, `string.gmatch`, `string.gsub`,
   `string.format`, `string.dump`
 - `math`: `math.pi`, `math.floor`, `math.ceil`, `math.sqrt`, `math.abs`,

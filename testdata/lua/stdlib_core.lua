@@ -19,6 +19,9 @@ end
 if select("#", string.byte("A", 2)) ~= 0 or select("#", string.byte("ABC", 3, 2)) ~= 0 then
   error("string.byte empty range mismatch")
 end
+if string.sub("abc", 2) ~= "bc" or string.sub("abc", 1, 0) ~= "" or string.sub("abc", 1, -1) ~= "abc" then
+  error("string.sub explicit zero end mismatch")
+end
 
 local assert_a, assert_b, assert_c = assert("ok", "left", "right")
 if assert_a ~= "ok" or assert_b ~= "left" or assert_c ~= "right" then
