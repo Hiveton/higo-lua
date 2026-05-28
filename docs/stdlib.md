@@ -71,7 +71,8 @@ supported.
 common Lua pattern classes and captures through a pure-Go regexp-backed
 implementation, with a dedicated scanner for simple `%bxy` balanced matches.
 Frontier assertions through `%f[...]` are supported for common byte-oriented
-classes. `string.gsub` supports string, table, and function replacements.
+classes, and the Lua non-greedy `-` repetition modifier is honored.
+`string.gsub` supports string, table, and function replacements.
 `string.format` accepts Lua integer-style specifiers such as `%d`, `%i`, `%o`,
 `%u`, `%x`, `%X`, and `%c` by coercing Lua numbers to integers before passing
 them to the formatter.

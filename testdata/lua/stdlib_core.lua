@@ -5,6 +5,9 @@ end)
 if text ~= "a2 b3" then
   error("string.gsub/frontier mismatch: " .. text)
 end
+if string.match("a123b456b", "a.-b") ~= "a123b" then
+  error("string pattern non-greedy '-' mismatch")
+end
 local gsub_bad_capture_ok = pcall(function()
   return string.gsub("abc", "a", "%1")
 end)

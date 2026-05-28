@@ -3698,7 +3698,7 @@ func compileLuaPattern(pattern string) (*regexp.Regexp, error) {
 		case '+', '*', '?':
 			b.WriteByte(ch)
 		case '-':
-			b.WriteByte('*')
+			b.WriteString("*?")
 		case '^', '$':
 			b.WriteByte(ch)
 		case '(', ')':

@@ -1754,12 +1754,14 @@ local word, digits = string.match("abc-123", "(%a+)%-(%d+)")
 local s, e, captured = string.find("id=42;", "id=(%d+)")
 local replaced, count = string.gsub("a1 b22", "%d+", "#")
 local plainStart = string.find("a.b", ".", 1, true)
-result = word .. ":" .. digits .. ":" .. s .. ":" .. e .. ":" .. captured .. ":" .. replaced .. ":" .. count .. ":" .. plainStart
+local shortest = string.match("a123b456b", "a.-b")
+local shortStart, shortEnd = string.find("xx<a>yy<b>zz", "<.->")
+result = word .. ":" .. digits .. ":" .. s .. ":" .. e .. ":" .. captured .. ":" .. replaced .. ":" .. count .. ":" .. plainStart .. ":" .. shortest .. ":" .. shortStart .. ":" .. shortEnd
 `); err != nil {
 		t.Fatalf("DoString() error = %v", err)
 	}
 	got, _ := st.GetGlobal("result")
-	if got.String() != "abc:123:1:5:42:a# b#:2:2" {
+	if got.String() != "abc:123:1:5:42:a# b#:2:2:a123b:3:5" {
 		t.Fatalf("result = %q, want Lua pattern matching behavior", got.String())
 	}
 }
