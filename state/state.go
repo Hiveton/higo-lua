@@ -1194,6 +1194,18 @@ func (s *State) callEqMetamethod(ctx context.Context, left, right value.Value) (
 	return result, true, err
 }
 
+func (s *State) luaLess(ctx context.Context, left, right value.Value) (bool, error) {
+	if meta, ok, err := s.callBinaryMetamethod(ctx, "__lt", left, right); ok || err != nil {
+		return value.IsTruthy(meta), err
+	}
+	ln, lok := value.ToNumber(left)
+	rn, rok := value.ToNumber(right)
+	if lok && rok {
+		return ln < rn, nil
+	}
+	return left.String() < right.String(), nil
+}
+
 func binaryMetamethod(name string, values ...value.Value) value.Value {
 	for _, v := range values {
 		if t, ok := v.(*value.Table); ok && t.Metatable() != nil {
@@ -2556,7 +2568,21 @@ func (s *State) openStdlib() {
 				}
 				return value.Nil, nil
 			}
-			t.Sort()
+			var compareErr error
+			t.SortFunc(func(a, b value.Value) bool {
+				if compareErr != nil {
+					return false
+				}
+				less, err := s.luaLess(ctx, a, b)
+				if err != nil {
+					compareErr = err
+					return false
+				}
+				return less
+			})
+			if compareErr != nil {
+				return value.Nil, compareErr
+			}
 			return value.Nil, nil
 		}})
 		tab.Set(value.String("concat"), &goFunction{fn: func(ctx context.Context, args Args) (value.Value, error) {

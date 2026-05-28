@@ -13,8 +13,9 @@ The default profile opens these modules:
   `getfenv`/`setfenv` support functions and Lua stack levels; `ipairs`
   performs raw array reads)
 - `table`: `table.insert`, `table.remove`, `table.sort`, `table.concat`
-  with Lua 5.1 sparse insert/remove boundary behavior, default concat
-  separator, raw integer-key access, and explicit concat range validation,
+  with Lua 5.1 sparse insert/remove boundary behavior, default sorting through
+  Lua `<` semantics including `__lt`, default concat separator, raw
+  integer-key access, and explicit concat range validation,
   `table.unpack`, `table.getn`, `table.maxn` over numeric keys,
   `table.foreach`, `table.foreachi` with raw array reads
 - `string`: `string.len`, `string.upper`, `string.lower`, `string.byte`

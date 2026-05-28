@@ -1551,6 +1551,32 @@ result = table.concat(t, ",")
 	}
 }
 
+func TestLua51TableSortDefaultUsesLessThanMetamethod(t *testing.T) {
+	st := state.New()
+	defer st.Close()
+
+	if err := st.DoString(context.Background(), `
+local mt = {
+  __lt = function(left, right)
+    return left.rank < right.rank
+  end
+}
+local t = {
+  setmetatable({name = "middle", rank = 2}, mt),
+  setmetatable({name = "last", rank = 3}, mt),
+  setmetatable({name = "first", rank = 1}, mt),
+}
+table.sort(t)
+result = t[1].name .. ":" .. t[2].name .. ":" .. t[3].name
+`); err != nil {
+		t.Fatalf("DoString() error = %v", err)
+	}
+	got, _ := st.GetGlobal("result")
+	if got.String() != "first:middle:last" {
+		t.Fatalf("result = %q, want default table.sort to use __lt", got.String())
+	}
+}
+
 func TestLua51TableConcatRejectsNonStringNumberElements(t *testing.T) {
 	st := state.New()
 	defer st.Close()

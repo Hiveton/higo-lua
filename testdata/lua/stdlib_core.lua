@@ -83,6 +83,19 @@ table.sort(numeric_values)
 if table.concat(numeric_values, ",") ~= "1,2,10" then
   error("table.sort numeric order mismatch")
 end
+local sortable_mt = {
+  __lt = function(left, right)
+    return left.rank < right.rank
+  end
+}
+local sortable_values = {
+  setmetatable({name = "second", rank = 2}, sortable_mt),
+  setmetatable({name = "first", rank = 1}, sortable_mt),
+}
+table.sort(sortable_values)
+if sortable_values[1].name ~= "first" or sortable_values[2].name ~= "second" then
+  error("table.sort __lt mismatch")
+end
 if table.concat({"a", "b"}) ~= "ab" then
   error("table.concat default separator mismatch")
 end
