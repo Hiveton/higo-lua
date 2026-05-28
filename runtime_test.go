@@ -55,6 +55,54 @@ func TestRuntimeDoFileExecutesScript(t *testing.T) {
 	}
 }
 
+func TestRuntimeDoFileRequiresSiblingModule(t *testing.T) {
+	dir := t.TempDir()
+	mainPath := filepath.Join(dir, "main.lua")
+	helperPath := filepath.Join(dir, "helper.lua")
+	if err := os.WriteFile(helperPath, []byte(`return {suffix = "module"}`), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(mainPath, []byte(`
+local helper = require("helper")
+return "sibling:" .. helper.suffix
+`), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	result, err := higolua.NewRuntime().DoFile(context.Background(), mainPath)
+	if err != nil {
+		t.Fatalf("DoFile() error = %v", err)
+	}
+	if result.String() != "sibling:module" {
+		t.Fatalf("result = %q, want sibling:module", result.String())
+	}
+}
+
+func TestStateDoFileRequiresSiblingModule(t *testing.T) {
+	dir := t.TempDir()
+	mainPath := filepath.Join(dir, "main.lua")
+	helperPath := filepath.Join(dir, "helper.lua")
+	if err := os.WriteFile(helperPath, []byte(`return {suffix = "state"}`), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(mainPath, []byte(`
+local helper = require("helper")
+return "sibling:" .. helper.suffix
+`), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	st := state.New()
+	defer st.Close()
+	result, err := st.DoFile(context.Background(), mainPath)
+	if err != nil {
+		t.Fatalf("DoFile() error = %v", err)
+	}
+	if result.String() != "sibling:state" {
+		t.Fatalf("result = %q, want sibling:state", result.String())
+	}
+}
+
 func TestRuntimeDoReaderExecutesScript(t *testing.T) {
 	result, err := higolua.NewRuntime().DoReader(context.Background(), "reader.lua", strings.NewReader(`return "reader"`))
 	if err != nil {

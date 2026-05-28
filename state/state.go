@@ -399,6 +399,7 @@ func (s *State) DoFile(ctx context.Context, path string) (value.Value, error) {
 	if err != nil {
 		return value.Nil, err
 	}
+	s.prependPackagePath(filepath.Dir(path))
 	return s.DoChunk(ctx, path, string(data))
 }
 
@@ -488,6 +489,22 @@ func (s *State) bytecodeHostTables() []string {
 		}
 	}
 	return names
+}
+
+func (s *State) prependPackagePath(dir string) {
+	if dir == "" {
+		dir = "."
+	}
+	pkg, ok := s.global.get("package").(*value.Table)
+	if !ok {
+		return
+	}
+	path := pkg.Get(value.String("path")).String()
+	prefix := filepath.Join(dir, "?.lua") + ";" + filepath.Join(dir, "?", "init.lua")
+	if path != "" {
+		prefix += ";" + path
+	}
+	pkg.Set(value.String("path"), value.String(prefix))
 }
 
 type vmCaller struct {

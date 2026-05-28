@@ -10,6 +10,9 @@ result, err = rt.DoReader(ctx, "reader.lua", strings.NewReader(`return "ok"`))
 ```
 
 `Runtime` creates an isolated state for each call.
+`DoFile` also prepends the script directory to `package.path`, so a top-level
+script can `require` sibling Lua modules without changing the host process
+working directory.
 
 ## Embedded State
 
@@ -38,6 +41,9 @@ values, err := st.CallValues(ctx, "lua_multi_func")
 ```
 
 `State` keeps globals and loaded functions alive until `Close`.
+`State.DoFile` prepends the script directory to that state's `package.path`
+before executing the chunk, matching the one-shot `Runtime.DoFile` behavior for
+external scripts with sibling modules.
 
 Use `Register` / `Call` for single-value Go/Lua calls. Use `RegisterMulti` /
 `CallValues` when the Lua call boundary must preserve all returned values.

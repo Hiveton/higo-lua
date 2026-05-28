@@ -3,7 +3,6 @@ package higolua
 import (
 	"context"
 	"io"
-	"os"
 
 	"github.com/hiveton/higolua/state"
 	"github.com/hiveton/higolua/stdlib"
@@ -32,11 +31,9 @@ func (r *Runtime) DoChunk(ctx context.Context, name, source string) (value.Value
 }
 
 func (r *Runtime) DoFile(ctx context.Context, path string) (value.Value, error) {
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return value.Nil, err
-	}
-	return r.DoChunk(ctx, path, string(data))
+	st := state.New(r.options...)
+	defer st.Close()
+	return st.DoFile(ctx, path)
 }
 
 func (r *Runtime) DoReader(ctx context.Context, name string, reader io.Reader) (value.Value, error) {

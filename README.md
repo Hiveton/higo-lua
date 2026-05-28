@@ -25,6 +25,8 @@ See `docs/api.md` and `docs/architecture.md`.
 Current status:
 
 - Public Runtime and State APIs are usable from other Go projects.
+- `Runtime.DoFile` and `State.DoFile` can run external Lua scripts that
+  `require` sibling Lua modules from the script directory.
 - The default AST interpreter covers core Lua control flow, closures, tables,
   Go/Lua calls, varargs, multiple returns, `pcall`, metatable `__index`,
   string colon methods, chunk loading functions, and a growing standard
