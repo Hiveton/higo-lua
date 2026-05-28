@@ -43,7 +43,7 @@ The default profile opens these modules:
   12-hour/AM-PM plus common numeric format specifiers, `os.clock`,
   `os.difftime`, `os.getenv`,
   `os.tmpname`, `os.rename`, `os.remove`, `os.execute`, `os.setlocale`,
-  `os.exit`
+  `os.exit` (`os.rename` and `os.remove` return `nil, message` on failure)
 - `package`: `require`, `package.path`, `package.loaded`,
   `package.preload`, `package.loaders`, `package.searchers`,
   `package.cpath`, `package.config`, `package.seeall`, `module`,

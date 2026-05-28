@@ -2736,17 +2736,17 @@ func (s *State) openStdlib() {
 			_ = os.Remove(name)
 			return value.String(name), nil
 		}})
-		osTable.Set(value.String("rename"), &goFunction{fn: func(ctx context.Context, args Args) (value.Value, error) {
+		osTable.Set(value.String("rename"), &multiGoFunction{fn: func(ctx context.Context, args Args) ([]value.Value, error) {
 			if err := os.Rename(args.String(0), args.String(1)); err != nil {
-				return value.Nil, err
+				return []value.Value{value.Nil, value.String(err.Error())}, nil
 			}
-			return value.Bool(true), nil
+			return []value.Value{value.Bool(true)}, nil
 		}})
-		osTable.Set(value.String("remove"), &goFunction{fn: func(ctx context.Context, args Args) (value.Value, error) {
+		osTable.Set(value.String("remove"), &multiGoFunction{fn: func(ctx context.Context, args Args) ([]value.Value, error) {
 			if err := os.Remove(args.String(0)); err != nil {
-				return value.Nil, err
+				return []value.Value{value.Nil, value.String(err.Error())}, nil
 			}
-			return value.Bool(true), nil
+			return []value.Value{value.Bool(true)}, nil
 		}})
 		osTable.Set(value.String("execute"), &goFunction{fn: func(ctx context.Context, args Args) (value.Value, error) {
 			cmd := args.String(0)

@@ -14,6 +14,12 @@ if data ~= "iGoLua" then
   error("io read/seek mismatch: " .. tostring(data))
 end
 
+local remove_missing, remove_missing_err = os.remove(path)
+local rename_missing, rename_missing_err = os.rename(path, path .. ".new")
+if remove_missing ~= nil or type(remove_missing_err) ~= "string" or rename_missing ~= nil or type(rename_missing_err) ~= "string" then
+  error("os remove/rename failure return mismatch")
+end
+
 local number_path = os.tmpname()
 local number_file = assert(io.open(number_path, "w+"))
 number_file:write("  -12.5 1.25e2 0x10 rest")

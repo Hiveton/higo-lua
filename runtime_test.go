@@ -2228,13 +2228,16 @@ local clockType = type(os.clock())
 local tmp = os.tmpname()
 local renamed = os.rename(%q, %q)
 local removed = os.remove(%q)
+local missing = %q
+local removeOK, removeErr = os.remove(missing)
+local renameOK, renameErr = os.rename(missing, missing .. ".new")
 local locale = os.setlocale("C")
-result = type(before) .. ":" .. diff .. ":" .. clockType .. ":" .. type(tmp) .. ":" .. tostring(renamed) .. ":" .. tostring(removed) .. ":" .. locale
-`, from, to, to)); err != nil {
+result = type(before) .. ":" .. diff .. ":" .. clockType .. ":" .. type(tmp) .. ":" .. tostring(renamed) .. ":" .. tostring(removed) .. ":" .. tostring(removeOK) .. ":" .. type(removeErr) .. ":" .. tostring(renameOK) .. ":" .. type(renameErr) .. ":" .. locale
+`, from, to, to, filepath.Join(dir, "missing.txt"))); err != nil {
 		t.Fatalf("DoString() error = %v", err)
 	}
 	got, _ := st.GetGlobal("result")
-	if got.String() != "string:6:number:string:true:true:C" {
+	if got.String() != "string:6:number:string:true:true:nil:string:nil:string:C" {
 		t.Fatalf("result = %q, want os library core behavior", got.String())
 	}
 }
