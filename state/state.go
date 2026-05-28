@@ -2055,7 +2055,7 @@ func (s *State) openStdlib() {
 					return nil, fmt.Errorf("ipairs iterator expects table")
 				}
 				next := int(iterArgs.Number(1)) + 1
-				v := table.Get(value.Number(next))
+				v := table.RawGet(value.Number(next))
 				if v == value.Nil {
 					return []value.Value{value.Nil}, nil
 				}

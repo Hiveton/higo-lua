@@ -548,12 +548,20 @@ for k, v in pairs({name = "lua"}) do
   key = k
   val = v
 end
-result = sum .. ":" .. key .. ":" .. val
+local rawSeq = ""
+local raw = {}
+raw[1] = "a"
+raw[3] = "c"
+setmetatable(raw, {__index = {[2] = "meta"}})
+for i, v in ipairs(raw) do
+  rawSeq = rawSeq .. i .. ":" .. v .. ";"
+end
+result = sum .. ":" .. key .. ":" .. val .. ":" .. rawSeq
 `); err != nil {
 		t.Fatalf("DoString() error = %v", err)
 	}
 	got, _ := st.GetGlobal("result")
-	if got.String() != "18:name:lua" {
+	if got.String() != "18:name:lua:1:a;" {
 		t.Fatalf("result = %q, want pairs/ipairs iterator output", got.String())
 	}
 }

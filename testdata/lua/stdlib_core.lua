@@ -45,6 +45,17 @@ end
 if select_count(select(4, "a", "b")) ~= 0 then
   error("select out-of-range multi-return mismatch")
 end
+local ipairs_values = {}
+ipairs_values[1] = "a"
+ipairs_values[3] = "c"
+setmetatable(ipairs_values, {__index = {[2] = "meta"}})
+local ipairs_seen = ""
+for i, v in ipairs(ipairs_values) do
+  ipairs_seen = ipairs_seen .. i .. ":" .. v .. ";"
+end
+if ipairs_seen ~= "1:a;" then
+  error("ipairs raw access mismatch")
+end
 
 local values = {3, 1, 2}
 table.sort(values)
