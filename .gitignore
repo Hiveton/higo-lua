@@ -1,0 +1,19 @@
+.DS_Store
+*.user
+*.log
+
+# CMake / Qt build output
+build/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+*.qmlc
+*.jsc
+
+# Python tooling cache
+__pycache__/
+*.py[cod]
+
+# Local release packages generated from artifacts
+artifacts/release/
