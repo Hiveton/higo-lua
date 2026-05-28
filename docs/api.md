@@ -26,6 +26,8 @@ Arguments after the script path or inline chunk are exposed through the Lua
 `arg[2]`, ... set to user arguments.
 When the script path is `-`, source is read from standard input and `arg[0]`
 is `-`.
+File and reader-based execution skip a leading Unix shebang line such as
+`#!/usr/bin/env lua`, matching common executable Lua script usage.
 
 The runner automatically prepends the script directory to `package.path`, so a
 script can `require("helper")` from `helper.lua` beside the entry file without

@@ -421,6 +421,7 @@ func (s *State) DoChunkValues(ctx context.Context, name, source string) (out []v
 	if s.closed {
 		return nil, &RuntimeError{Chunk: name, Err: errors.New("higolua: state is closed")}
 	}
+	source = stripShebang(source)
 	chunk, err := parser.Parse(name, source)
 	if err != nil {
 		return nil, newSyntaxError(name, err)
@@ -446,6 +447,17 @@ func (s *State) DoChunkValues(ctx context.Context, name, source string) (out []v
 		return res.values, nil
 	}
 	return []value.Value{value.Nil}, nil
+}
+
+func stripShebang(source string) string {
+	if !strings.HasPrefix(source, "#!") {
+		return source
+	}
+	newline := strings.IndexByte(source, '\n')
+	if newline < 0 {
+		return "\n"
+	}
+	return strings.Repeat(" ", newline) + source[newline:]
 }
 
 func (s *State) tryBytecode(ctx context.Context, chunk *ast.Chunk) ([]value.Value, bool, error) {

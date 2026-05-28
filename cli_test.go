@@ -42,6 +42,23 @@ return greeter.message("external")
 	}
 }
 
+func TestHigoLuaRunExecutesShebangScript(t *testing.T) {
+	dir := t.TempDir()
+	scriptPath := filepath.Join(dir, "tool.lua")
+	if err := os.WriteFile(scriptPath, []byte("#!/usr/bin/env lua\nreturn 'cli-shebang'"), 0o700); err != nil {
+		t.Fatal(err)
+	}
+
+	cmd := exec.Command("go", "run", "./cmd/higoluarun", scriptPath)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("higoluarun failed: %v\n%s", err, output)
+	}
+	if got := strings.TrimSpace(string(output)); got != "cli-shebang" {
+		t.Fatalf("output = %q, want cli-shebang", got)
+	}
+}
+
 func TestHigoLuaRunAutomaticallyRequiresModulesBesideScript(t *testing.T) {
 	dir := t.TempDir()
 	if err := os.WriteFile(filepath.Join(dir, "helper.lua"), []byte(`

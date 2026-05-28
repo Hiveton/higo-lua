@@ -55,6 +55,32 @@ func TestRuntimeDoFileExecutesScript(t *testing.T) {
 	}
 }
 
+func TestRuntimeDoFileExecutesShebangScript(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "main.lua")
+	if err := os.WriteFile(path, []byte("#!/usr/bin/env lua\nreturn 'shebang:' .. (20 + 22)"), 0o700); err != nil {
+		t.Fatal(err)
+	}
+
+	result, err := higolua.NewRuntime().DoFile(context.Background(), path)
+	if err != nil {
+		t.Fatalf("DoFile() error = %v", err)
+	}
+	if result.String() != "shebang:42" {
+		t.Fatalf("result = %q, want shebang:42", result.String())
+	}
+}
+
+func TestRuntimeDoReaderExecutesShebangScript(t *testing.T) {
+	result, err := higolua.NewRuntime().DoReader(context.Background(), "reader.lua", strings.NewReader("#!/usr/bin/env lua\nreturn 'reader-shebang'"))
+	if err != nil {
+		t.Fatalf("DoReader() error = %v", err)
+	}
+	if result.String() != "reader-shebang" {
+		t.Fatalf("result = %q, want reader-shebang", result.String())
+	}
+}
+
 func TestRuntimeDoReaderExecutesScript(t *testing.T) {
 	result, err := higolua.NewRuntime().DoReader(context.Background(), "reader.lua", strings.NewReader(`return "reader"`))
 	if err != nil {
