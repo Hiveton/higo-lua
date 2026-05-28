@@ -100,6 +100,17 @@ func TestHigoLuaRunExecutesStdinChunk(t *testing.T) {
 	}
 }
 
+func TestHigoLuaRunExecutesInlineChunk(t *testing.T) {
+	cmd := exec.Command("go", "run", "./cmd/higoluarun", "-e", `return arg[0] .. ":" .. arg[1] .. ":" .. (3 * 7)`, "inline")
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		t.Fatalf("higoluarun -e failed: %v\n%s", err, output)
+	}
+	if got := strings.TrimSpace(string(output)); got != "-e:inline:21" {
+		t.Fatalf("output = %q, want -e:inline:21", got)
+	}
+}
+
 func TestHigoLuaRunTestRunsDirectoryScripts(t *testing.T) {
 	dir := t.TempDir()
 	if err := os.WriteFile(filepath.Join(dir, "pass.lua"), []byte(`

@@ -24,6 +24,12 @@ func run(ctx context.Context, args []string) error {
 	if len(args) == 0 {
 		return usage()
 	}
+	if args[0] == "-e" {
+		if len(args) < 2 {
+			return usage()
+		}
+		return runInline(ctx, args[1], args[2:], true)
+	}
 	if args[0] == "test" {
 		if len(args) != 2 {
 			return usage()
@@ -34,7 +40,24 @@ func run(ctx context.Context, args []string) error {
 }
 
 func usage() error {
-	return fmt.Errorf("usage: higoluarun <script.lua|-> [args...] | higoluarun test <directory>")
+	return fmt.Errorf("usage: higoluarun <script.lua|-> [args...] | higoluarun -e <chunk> [args...] | higoluarun test <directory>")
+}
+
+func runInline(ctx context.Context, source string, scriptArgs []string, printResult bool) error {
+	st := state.New()
+	defer st.Close()
+	st.SetGlobal("arg", argTable("-e", scriptArgs))
+	if err := prependScriptPackagePath(ctx, st, "."); err != nil {
+		return err
+	}
+	results, err := st.DoChunkValues(ctx, "-e", source)
+	if err != nil {
+		return err
+	}
+	if printResult {
+		printResults(results)
+	}
+	return nil
 }
 
 func runScript(ctx context.Context, scriptPath string, scriptArgs []string, printResult bool) error {

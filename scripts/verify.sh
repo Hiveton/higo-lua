@@ -9,6 +9,7 @@ go test ./...
 go test -race ./...
 
 go run ./cmd/higoluarun ./testdata/lua/basic.lua
+go run ./cmd/higoluarun -e 'return arg[0] .. ":" .. arg[1] .. ":" .. (3 * 7)' inline
 printf 'return arg[0] .. ":" .. arg[1]\n' | go run ./cmd/higoluarun - cliarg
 go run ./cmd/higoluarun test ./testdata/lua
 

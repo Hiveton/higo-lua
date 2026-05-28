@@ -16,13 +16,14 @@ result, err = rt.DoReader(ctx, "reader.lua", strings.NewReader(`return "ok"`))
 Run an external Lua file:
 
 ```bash
+go run ./cmd/higoluarun -e 'return 1 + 2'
 go run ./cmd/higoluarun ./testdata/lua/basic.lua
 echo 'return "stdin"' | go run ./cmd/higoluarun -
 ```
 
-Arguments after the script path are exposed through the Lua `arg` table, with
-`arg[0]` set to the script path and `arg[1]`, `arg[2]`, ... set to user
-arguments.
+Arguments after the script path or inline chunk are exposed through the Lua
+`arg` table, with `arg[0]` set to the script path, `-`, or `-e`, and `arg[1]`,
+`arg[2]`, ... set to user arguments.
 When the script path is `-`, source is read from standard input and `arg[0]`
 is `-`.
 

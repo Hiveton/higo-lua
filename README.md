@@ -24,6 +24,7 @@ Individual checks:
 go test ./...
 go test -race ./...
 go run ./cmd/higoluarun test ./testdata/lua
+go run ./cmd/higoluarun -e 'return 1 + 2'
 go run ./cmd/higoluarun ./testdata/lua/basic.lua
 echo 'return "stdin"' | go run ./cmd/higoluarun -
 ```
@@ -32,6 +33,7 @@ The `cmd/higoluarun` command runs external Lua files directly from this module.
 It also has a `test <directory>` mode for executing compatibility scripts under
 `testdata/lua`. The runner adds the script directory to `package.path`, so
 single-file tools can require helper modules placed beside the entry script.
+Use `-e <chunk>` for inline Lua snippets.
 
 See `docs/api.md` and `docs/architecture.md`.
 
