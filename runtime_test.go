@@ -2299,6 +2299,31 @@ result = first .. ":" .. written .. ":" .. currentType
 	}
 }
 
+func TestLua51IOReadReturnsMultipleFormatResults(t *testing.T) {
+	inputPath := filepath.Join(t.TempDir(), "input.txt")
+	if err := os.WriteFile(inputPath, []byte("12 rest\nnext\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	st := state.New()
+	defer st.Close()
+
+	if err := st.DoString(context.Background(), fmt.Sprintf(`
+local input = assert(io.open(%q, "r"))
+local previousInput = io.input(input)
+local n, line, all = io.read("*number", "*line", "*all")
+io.input(previousInput)
+input:close()
+result = n .. ":" .. line .. ":" .. string.gsub(all, "\n", "\\n")
+`, inputPath)); err != nil {
+		t.Fatalf("DoString() error = %v", err)
+	}
+	got, _ := st.GetGlobal("result")
+	if got.String() != "12: rest:next\\n" {
+		t.Fatalf("result = %q, want io.read multiple format return values", got.String())
+	}
+}
+
 func TestLua51IOPopenAndSetvbuf(t *testing.T) {
 	st := state.New()
 	defer st.Close()

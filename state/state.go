@@ -2900,9 +2900,8 @@ func (s *State) openStdlib() {
 			}
 			return fileLineIterator(&fileHandle{file: file, reader: bufio.NewReader(file)}, true), nil
 		}})
-		ioTable.Set(value.String("read"), &goFunction{fn: func(ctx context.Context, args Args) (value.Value, error) {
-			values, err := s.fileMethod(s.input, "read").(*multiGoFunction).fn(ctx, append(Args{value.Nil}, args...))
-			return first(values), err
+		ioTable.Set(value.String("read"), &multiGoFunction{fn: func(ctx context.Context, args Args) ([]value.Value, error) {
+			return s.fileMethod(s.input, "read").(*multiGoFunction).fn(ctx, append(Args{value.Nil}, args...))
 		}})
 		ioTable.Set(value.String("write"), &goFunction{fn: func(ctx context.Context, args Args) (value.Value, error) {
 			return s.fileMethod(s.output, "write").(*goFunction).fn(ctx, append(Args{s.output}, args...))

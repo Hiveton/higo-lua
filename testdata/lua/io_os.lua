@@ -41,6 +41,20 @@ if multi_number ~= 12 or multi_line ~= " rest" or multi_all ~= "next\n" then
   error("io read aliases/multiple formats mismatch")
 end
 
+local global_path = os.tmpname()
+local global_file = assert(io.open(global_path, "w+"))
+global_file:write("34 more\nleft\n")
+global_file:seek("set", 0)
+local previous_input = io.input(global_file)
+local global_number, global_line, global_all = io.read("*number", "*line", "*all")
+io.input(previous_input)
+global_file:close()
+os.remove(global_path)
+
+if global_number ~= 34 or global_line ~= " more" or global_all ~= "left\n" then
+  error("global io.read multiple formats mismatch")
+end
+
 local all_path = os.tmpname()
 local all_file = assert(io.open(all_path, "w+"))
 all_file:write("a\nb\n")
