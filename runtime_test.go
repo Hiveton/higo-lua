@@ -2240,6 +2240,33 @@ result = out
 	}
 }
 
+func TestLua51IOLinesUsesDefaultInputWhenPathOmitted(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "default-lines.txt")
+	if err := os.WriteFile(path, []byte("left\nright\n"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	st := state.New()
+	defer st.Close()
+	if err := st.DoString(context.Background(), fmt.Sprintf(`
+local f = assert(io.open(%q, "r"))
+local previous = io.input(f)
+local out = ""
+for line in io.lines() do
+  out = out .. line .. "|"
+end
+io.input(previous)
+f:close()
+result = out .. ":" .. io.type(f)
+`, path)); err != nil {
+		t.Fatalf("DoString() error = %v", err)
+	}
+	got, _ := st.GetGlobal("result")
+	if got.String() != "left|right|:closed file" {
+		t.Fatalf("result = %q, want io.lines() to iterate default input", got.String())
+	}
+}
+
 func TestLua51IOTmpfileTypeAndSeek(t *testing.T) {
 	st := state.New()
 	defer st.Close()

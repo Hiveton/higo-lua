@@ -30,7 +30,8 @@ The default profile opens these modules:
   `io.stdin`, `io.stdout`, `io.stderr`, file handles with `read`, `write`,
   `flush`, `close`, `lines`, `seek`, and `setvbuf`
   (`file:read` and `io.read` support `*l`/`*line`, `*a`/`*all`,
-  `*n`/`*number`, byte counts, and multiple format arguments)
+  `*n`/`*number`, byte counts, and multiple format arguments; `io.lines()`
+  iterates the current default input)
 - `os`: `os.time`, `os.date`, `os.clock`, `os.difftime`, `os.getenv`,
   `os.tmpname`, `os.rename`, `os.remove`, `os.execute`, `os.setlocale`,
   `os.exit`

@@ -55,6 +55,23 @@ if global_number ~= 34 or global_line ~= " more" or global_all ~= "left\n" then
   error("global io.read multiple formats mismatch")
 end
 
+local lines_path = os.tmpname()
+local lines_file = assert(io.open(lines_path, "w+"))
+lines_file:write("left\nright\n")
+lines_file:seek("set", 0)
+local previous_lines_input = io.input(lines_file)
+local lines_out = ""
+for line in io.lines() do
+  lines_out = lines_out .. line .. "|"
+end
+io.input(previous_lines_input)
+lines_file:close()
+os.remove(lines_path)
+
+if lines_out ~= "left|right|" then
+  error("io.lines default input mismatch")
+end
+
 local all_path = os.tmpname()
 local all_file = assert(io.open(all_path, "w+"))
 all_file:write("a\nb\n")
