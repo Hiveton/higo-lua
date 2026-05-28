@@ -1516,12 +1516,20 @@ end)
 local okNil, errNil = pcall(function()
   return table.concat({"a"}, "", 1, 3)
 end)
-result = defaultSep .. ":" .. tostring(okBool) .. ":" .. type(errBool) .. ":" .. tostring(okTable) .. ":" .. type(errTable) .. ":" .. tostring(okNil) .. ":" .. type(errNil)
+local indexed = {}
+indexed[-1] = "x"
+indexed[0] = "y"
+indexed[1] = "z"
+local explicitRange = table.concat(indexed, "", -1, 1)
+local okMeta, errMeta = pcall(function()
+  return table.concat(setmetatable({}, {__index = {[1] = "meta"}}), "", 1, 1)
+end)
+result = defaultSep .. ":" .. tostring(okBool) .. ":" .. type(errBool) .. ":" .. tostring(okTable) .. ":" .. type(errTable) .. ":" .. tostring(okNil) .. ":" .. type(errNil) .. ":" .. explicitRange .. ":" .. tostring(okMeta) .. ":" .. type(errMeta)
 `); err != nil {
 		t.Fatalf("DoString() error = %v", err)
 	}
 	got, _ := st.GetGlobal("result")
-	if got.String() != "ab:false:string:false:string:false:string" {
+	if got.String() != "ab:false:string:false:string:false:string:xyz:false:string" {
 		t.Fatalf("result = %q, want concat to reject non-string/number elements", got.String())
 	}
 }

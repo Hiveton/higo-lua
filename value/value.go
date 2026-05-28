@@ -259,18 +259,12 @@ func (t *Table) SortFunc(less func(a, b Value) bool) {
 }
 
 func (t *Table) Concat(sep string, start, end int) string {
-	if start <= 0 {
-		start = 1
-	}
-	if end <= 0 || end > len(t.array) {
-		end = len(t.array)
-	}
 	if start > end {
 		return ""
 	}
 	parts := make([]string, 0, end-start+1)
-	for i := start - 1; i < end; i++ {
-		parts = append(parts, t.array[i].String())
+	for i := start; i <= end; i++ {
+		parts = append(parts, t.RawGet(Number(i)).String())
 	}
 	return strings.Join(parts, sep)
 }

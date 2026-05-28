@@ -2576,7 +2576,7 @@ func (s *State) openStdlib() {
 				return value.String(""), nil
 			}
 			for i := start; i <= end; i++ {
-				v := t.Get(value.Number(i))
+				v := t.RawGet(value.Number(i))
 				switch v.(type) {
 				case value.String, value.Number:
 				default:

@@ -67,7 +67,14 @@ end)
 local concat_nil_ok = pcall(function()
   return table.concat({"a"}, "", 1, 3)
 end)
-if concat_bool_ok or concat_table_ok or concat_nil_ok then
+local concat_range_values = {}
+concat_range_values[-1] = "x"
+concat_range_values[0] = "y"
+concat_range_values[1] = "z"
+local concat_meta_ok = pcall(function()
+  return table.concat(setmetatable({}, {__index = {[1] = "meta"}}), "", 1, 1)
+end)
+if table.concat(concat_range_values, "", -1, 1) ~= "xyz" or concat_bool_ok or concat_table_ok or concat_nil_ok or concat_meta_ok then
   error("table.concat element compatibility mismatch")
 end
 local remove_values = {"a", "b"}
